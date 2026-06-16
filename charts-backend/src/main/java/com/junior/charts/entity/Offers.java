@@ -27,7 +27,13 @@ public class Offers {
     private String location;
     private int salary_min;
     private int salary_max;
-    private List<String> technologies;
+    @ElementCollection
+    @CollectionTable(
+            name = "offer_technologies",
+            joinColumns = @JoinColumn(name = "offer_id")
+    )
+    @Column(name = "technology")
+    private List<String> technologies = new ArrayList<>();
     private String description;
     private String requirements;
     private String offer_url;
