@@ -1,17 +1,14 @@
-package com.junior.charts.DTO;
+package com.junior.charts.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-// DTO do mapowania wyników technologii z
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter @Setter
-public class PopularTechnologyDTO {
-    private String technology;
-    private Long count;
-
+public class OffersByLocationDTO {
+    private String location;
+    private Long liczba_ofert;
 }

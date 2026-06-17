@@ -14,10 +14,9 @@ public class Contracts {
     @JoinColumn(name = "job_offer_id",nullable = false)
     private Offers offers;
 
-    private Long job_offer_id;
     private String contract_type;
-    private int salary_min;
-    private int salary_max;
+    private Integer salary_min;
+    private Integer salary_max;
     private String salary_currency;
     private String salary_grossness;
     private String salary_period;

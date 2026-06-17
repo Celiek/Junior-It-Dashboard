@@ -1,12 +1,13 @@
 package com.junior.charts.repo;
 
-import com.junior.charts.DTO.OffersByLocationDTO;
-import com.junior.charts.DTO.PopularTechnologyDTO;
+import com.junior.charts.dto.OffersByLocationDTO;
+import com.junior.charts.dto.PopularTechnologyProjection;
 import com.junior.charts.entity.Offers;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -24,23 +25,24 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
 
 
     @Query(value = """
-            SELECT new com.junior.charts.dto.OffersByLocationDto(
+            SELECT new com.junior.charts.dto.OffersByLocationDTO(
             o.location,
             COUNT(o)
             )
             FROM Offers o 
             GROUP BY o.location
-            ORDER COUNT(o) DESC
+            ORDER BY COUNT(o) DESC
             """)
     List<OffersByLocationDTO> countOffersByLocation();
 
-    @Query("""
-            SELECT o from Offers o
-            WHERE o.scraped_at BETWEEN :startDate AND stopDate
-            ORDER BY o.scraped_at DESC
-            """)
-    List<Offers> findOffersBeetweenDates(@Param("startDate") Date startDate,
-                                         @Param("stopDate") Date stopDate);
+    @Query(value = """
+            SELECT * from job_offers
+            Where scraped_at >= :startDate
+            AND scraped_at <= :stopDate
+            ORDER BY scraped_at DESC
+            """, nativeQuery = true)
+    List<Offers> findOffersBeetweenDates(@Param("startDate") LocalDateTime startDate,
+                                         @Param("stopDate") LocalDateTime stopDate);
 
     @Query(value = """
         SELECT * 
@@ -56,15 +58,16 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
             """,nativeQuery = true)
     List<Offers> findOffersFromMonthBeforeDate(@Param("date") Date date);
 
-    @Query("""
-            SELECT new com.junior.charts.dto.PopularTechnologyDTO(
-            LOWER(TRIM(t)),
-            COUNT(t))
-            FROM Offers o
-            JOIN o.technologies t
-            WHRE t IS NOT NULL
-            AND LOWER(TRIM(t))
-            ORDER BY COUNT(t) DESC
-            """)
-    List<PopularTechnologyDTO> findMostPopularTechnologies();
+    @Query(value = """
+            SELECT
+               LOWER(TRIM(t)) AS technology,
+               COUNT(*) AS count
+           FROM job_offers jo
+           CROSS JOIN unnest(jo.technologies) AS t
+           WHERE t IS NOT NULL
+             AND TRIM(t) <> ''
+           GROUP BY LOWER(TRIM(t))
+           ORDER BY count DESC
+            """,nativeQuery = true)
+    List<PopularTechnologyProjection> findMostPopularTechnologies();
 }

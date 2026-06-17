@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -25,25 +26,23 @@ public class Offers {
     private String title;
     private String company;
     private String location;
-    private int salary_min;
-    private int salary_max;
+    private Integer salary_min;
+    private Integer salary_max;
     @ElementCollection
-    @CollectionTable(
-            name = "offer_technologies",
-            joinColumns = @JoinColumn(name = "offer_id")
-    )
-    @Column(name = "technology")
-    private List<String> technologies = new ArrayList<>();
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "technology",columnDefinition = "text[]")
+    private List<String> technology = new ArrayList<>();
     private String description;
     private String requirements;
     private String offer_url;
     @Column(name = "\"source\"")
     private String source;
-    private Date scraped_at;
+    @Column(name = "scraped_at")
+    private LocalDateTime scraped_at;
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> raw_json;
 
-    @OneToMany(mappedBy = "offer", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "offers", cascade = CascadeType.ALL)
     private List<Contracts> umowy = new ArrayList<>();
 
 }
