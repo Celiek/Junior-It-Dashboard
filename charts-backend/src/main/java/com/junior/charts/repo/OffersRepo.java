@@ -36,10 +36,11 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
     List<OffersByLocationDTO> countOffersByLocation();
 
     @Query(value = """
-            SELECT * from job_offers
-            Where scraped_at >= :startDate
-            AND scraped_at <= :stopDate
-            ORDER BY scraped_at DESC
+              SELECT *
+               FROM job_offers
+               WHERE scraped_at >= :startDate
+                 AND scraped_at < :stopDate
+               ORDER BY scraped_at DESC
             """, nativeQuery = true)
     List<Offers> findOffersBeetweenDates(@Param("startDate") LocalDateTime startDate,
                                          @Param("stopDate") LocalDateTime stopDate);

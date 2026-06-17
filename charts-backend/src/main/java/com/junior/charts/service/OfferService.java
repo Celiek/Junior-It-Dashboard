@@ -1,5 +1,6 @@
 package com.junior.charts.service;
 
+import com.junior.charts.dto.OfferDto;
 import com.junior.charts.dto.OffersByLocationDTO;
 import com.junior.charts.dto.PopularTechnologyProjection;
 import com.junior.charts.entity.Offers;
@@ -25,7 +26,7 @@ public class OfferService {
         return repo.findAllFromLastMonth();
     }
 
-    public List<Offers> findOffersBeetweenDates(LocalDate startDate,
+    public List<OfferDto> findOffersBeetweenDates(LocalDate startDate,
                                                 LocalDate stopDate){
         LocalDateTime start = startDate.atStartOfDay();
 
@@ -38,7 +39,21 @@ public class OfferService {
 
         System.out.println("liczba ofert = " + repo.count());
 
-        return repo.findOffersBeetweenDates(start,stop);
+        return repo.findOffersBeetweenDates(start,stop).
+        stream()
+                .map(o -> new OfferDto(
+                        o.getId(),
+                        o.getTitle(),
+                        o.getCompany(),
+                        o.getLocation(),
+                        o.getSalary_min(),
+                        o.getSalary_max(),
+                        o.getTechnology(),
+                        o.getOffer_url(),
+                        o.getSource(),
+                        o.getScraped_at()
+                ))
+                .toList();
     }
 
     public List<Offers> findOffersFromMonthBeforeDate(Date date){

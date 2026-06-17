@@ -1,5 +1,6 @@
 package com.junior.charts.controller;
 
+import com.junior.charts.dto.OfferDto;
 import com.junior.charts.dto.OffersByLocationDTO;
 import com.junior.charts.entity.Offers;
 import com.junior.charts.service.OfferService;
@@ -28,7 +29,7 @@ public class OffersController {
     }
 
     @GetMapping("/findOffersBetweenDates")
-    public ResponseEntity<List<Offers>> findOffersBetweenDates
+    public ResponseEntity<List<OfferDto>> findOffersBetweenDates
             (@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
              @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate stopDate){
         System.out.println("Start DATE" + startDate);

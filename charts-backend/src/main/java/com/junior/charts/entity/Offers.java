@@ -22,15 +22,16 @@ import java.util.Map;
 public class Offers {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
     private String title;
     private String company;
     private String location;
     private Integer salary_min;
     private Integer salary_max;
-    @ElementCollection
+
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "technology",columnDefinition = "text[]")
+    @Column(name = "technologies",columnDefinition = "text[]")
     private List<String> technology = new ArrayList<>();
     private String description;
     private String requirements;
