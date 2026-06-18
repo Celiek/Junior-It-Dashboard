@@ -1,8 +1,6 @@
 package com.junior.charts.service;
 
-import com.junior.charts.dto.OfferDto;
-import com.junior.charts.dto.OffersByLocationDTO;
-import com.junior.charts.dto.PopularTechnologyProjection;
+import com.junior.charts.dto.*;
 import com.junior.charts.entity.Offers;
 import com.junior.charts.repo.OffersRepo;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +63,14 @@ public class OfferService {
     }
     public void listaOfert(){
         System.out.println("liczba ofert = " + repo.count());
+    }
+
+    public List<OfferWithContractDTO> findOffersWithContract(){
+        return repo.findOffersWithContract();
+    }
+
+    public List<AverageSalaryByMonthProjection> getAverageSalaryByMonth(){
+        return repo.getAverageSalaryByMonth();
     }
 
 }

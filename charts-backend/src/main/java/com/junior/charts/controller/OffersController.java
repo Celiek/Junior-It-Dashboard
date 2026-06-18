@@ -1,6 +1,8 @@
 package com.junior.charts.controller;
 
+import com.junior.charts.dto.AverageSalaryByMonthProjection;
 import com.junior.charts.dto.OfferDto;
+import com.junior.charts.dto.OfferWithContractDTO;
 import com.junior.charts.dto.OffersByLocationDTO;
 import com.junior.charts.entity.Offers;
 import com.junior.charts.service.OfferService;
@@ -34,10 +36,17 @@ public class OffersController {
              @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate stopDate){
         System.out.println("Start DATE" + startDate);
         System.out.println("STOP DATE" + stopDate);
-        service.listaOfert();
+        //service.listaOfert();
         return ResponseEntity.ok(service.findOffersBeetweenDates(startDate,stopDate));
     }
 
+    @GetMapping("/findOffersWithContract")
+    public ResponseEntity<List<OfferWithContractDTO>> findOffersWithContract(){
+        return ResponseEntity.ok(service.findOffersWithContract());
+    }
 
-
+    @GetMapping("/averageSalaryByMonth")
+    public ResponseEntity<List<AverageSalaryByMonthProjection>> getAverageSalaryByMonth(){
+        return ResponseEntity.ok(service.getAverageSalaryByMonth());
+    }
 }
