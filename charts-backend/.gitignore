@@ -32,35 +32,7 @@ build/
 ### VS Code ###
 .vscode/
 
-# Angular build
+node_modules/
 dist/
 tmp/
 out-tsc/
-
-# Node
-node_modules/
-npm-debug.log
-yarn-error.log
-
-# Compiled output
-*.js
-*.js.map
-
-# Angular environment backups
-src/environments/*.prod.ts.backup
-src/environments/*.dev.ts.backup
-
-# Tests
-coverage/
-
-# IDE / Editor
-.idea/
-.vscode/
-*.iml
-
-# System files
-.DS_Store
-Thumbs.db
-
-# Misc
-package-lock.json.*

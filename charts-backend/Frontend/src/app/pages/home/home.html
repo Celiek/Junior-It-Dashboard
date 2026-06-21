@@ -1,0 +1,14 @@
+<main class="dashboard">
+    <h1>Junior IT Market Dashboard</h1>
+
+    <p>
+        Analiza ofert pracy dla juniorów IT w Polsce.
+    </p>
+
+    <section class="chart-card">
+        <h2>{{ chartTitle }}</h2>
+
+        <canvas baseChart [type]="chartType" [data]="chartData" [options]="chartOptions">
+        </canvas>
+    </section>
+</main>

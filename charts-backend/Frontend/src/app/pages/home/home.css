@@ -1,0 +1,18 @@
+.dashboard {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px;
+    font-family: Arial, sans-serif;
+}
+
+.chart-card {
+    margin-top: 32px;
+    padding: 24px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+canvas {
+    max-height: 500px;
+}
