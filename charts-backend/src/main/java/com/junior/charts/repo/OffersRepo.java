@@ -29,11 +29,38 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
 
     @Query(value = """
             SELECT new com.junior.charts.dto.OffersByLocationDTO(
-            o.location,
+            CASE 
+                WHEN LOWER(o.location) LIKE '%warszawa%' THEN 'Warszawa'
+                WHEN LOWER(o.location) LIKE '%kraków%' THEN 'Kraków'
+                WHEN LOWER(o.location) LIKE '%wrocław%' THEN 'Wrocław'
+                WHEN LOWER(o.location) LIKE '%poznań%' THEN 'Poznań'
+                WHEN LOWER(o.location) LIKE '%gdańsk%' THEN 'Gdańsk'
+                WHEN LOWER(o.location) LIKE '%gdynia%' THEN 'Gdynia'
+                when LOWER(o.location) LIKE '%lublin%' THEN 'Lublin',
+                when LOWER(o.location) LIKE '%opole%' THEN 'Opole',
+                when LOWER(o.location) LIKE '%łódź%' THEN 'Łódź',
+                WHEN LOWER(o.location) LIKE '%remote%' OR LOWER(o.location) LIKE '%zdalna%' THEN 'zdalna'
+                ELSE TRIM(o.location)
+            END,
             COUNT(o)
             )
             FROM Offers o 
-            GROUP BY o.location
+            WHERE o.location is not null
+            AND TRIM(o.location) <> ''
+            GROUP BY 
+            CASE 
+                WHEN LOWER(o.location) LIKE '%warszawa%' THEN 'Warszawa'
+                WHEN LOWER(o.location) LIKE '%kraków%' THEN 'Kraków'
+                WHEN LOWER(o.location) LIKE '%wrocław%' THEN 'Wrocław'
+                WHEN LOWER(o.location) LIKE '%poznań%' THEN 'Poznań'
+                WHEN LOWER(o.location) LIKE '%gdańsk%' THEN 'Gdańsk'
+                WHEN LOWER(o.location) LIKE '%gdynia%' THEN 'Gdynia'
+                when LOWER(o.location) LIKE '%lublin%' THEN 'Lublin',
+                when LOWER(o.location) LIKE '%opole%' THEN 'Opole',
+                when LOWER(o.location) LIKE '%łódź%' THEN 'Łódź',
+                WHEN LOWER(o.location) LIKE '%remote%' OR LOWER(o.location) LIKE '%zdalna%' THEN 'zdalna'
+                ELSE TRIM(o.location)
+            END
             ORDER BY COUNT(o) DESC
             """)
     List<OffersByLocationDTO> countOffersByLocation();

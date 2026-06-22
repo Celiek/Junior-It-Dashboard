@@ -1,7 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit,ViewChild } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
 import { ChartDataService } from '../../services/chart-data.service';
+
+interface JobLocationStats {
+  location: string;
+  liczba_ofert: number;
+}
 
 @Component({
   selector: 'app-home',
@@ -10,6 +15,7 @@ import { ChartDataService } from '../../services/chart-data.service';
   styleUrl: './home.css'
 })
 export class Home implements OnInit {
+  @ViewChild(BaseChartDirective) chart?: BaseChartDirective ;
 
   public chartTitle = 'Oferty pracy według lokalizacji';
 
@@ -27,6 +33,7 @@ export class Home implements OnInit {
 
   public chartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
+    maintainAspectRatio: false,
     indexAxis: 'y',
     plugins: {
       legend: {
@@ -36,6 +43,11 @@ export class Home implements OnInit {
         display: true,
         text: 'Oferty pracy według lokalizacji'
       }
+    },
+    scales: {
+      x: {
+        beginAtZero: true,
+      }
     }
   };
 
@@ -44,15 +56,23 @@ export class Home implements OnInit {
   ngOnInit(): void {
     this.chartDataService.getOffersByLocation().subscribe({
       next: response => {
-        this.chartData = {
-          labels: response.map(item => item.location),
-          datasets: [
-            {
-              label: 'Liczba ofert',
-              data: response.map(item => item.liczba_ofert)
-            }
-          ]
-        };
+        console.log('Dane z API:', response);
+        console.log('Pierwszy element:',response[0]);
+
+        const topLocations = response
+          .filter(item => item.location && item.liczba_ofert !== null && item.liczba_ofert !== undefined)
+          .slice(0, 20);
+
+        const labels = topLocations.map(item => item.location);
+        const values = topLocations.map(item => Number(item.liczba_ofert));
+
+        console.log('Labels:',labels);
+        console.log('Values:',values);
+
+        this.chartData.labels = labels;
+        this.chartData.datasets[0].data = values;
+
+        this.chart?.update();
       },
       error: error => {
         console.error('Błąd pobierania danych z API:', error);
@@ -60,4 +80,5 @@ export class Home implements OnInit {
       }
     });
   }
+
 }

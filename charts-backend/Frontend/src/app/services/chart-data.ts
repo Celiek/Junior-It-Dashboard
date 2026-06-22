@@ -8,7 +8,7 @@ import { ChartDataResponse } from '../models/chart-data';
 })
 export class ChartDataService {
 
-  private readonly apiUrl = 'https://charts-backend-446117273077.europe-west1.run.app:8080/api/charts';
+  private readonly apiUrl = 'https://charts-backend-446117273077.europe-west1.run.app/api/offers/averageSalaryByMonth';
 
   constructor(private http: HttpClient) {}
 

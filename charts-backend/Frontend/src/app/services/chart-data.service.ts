@@ -8,13 +8,13 @@ import { JobLocationStats } from '../models/job-location-stats';
 })
 export class ChartDataService {
 
-  private readonly apiUrl = 'https://charts-backend-liawejxy3q-ew.a.run.app/api/offers/countOffersByLocation';
+  private readonly apiUrl = 'https://charts-backend-446117273077.europe-west1.run.app/api/offers';
 
   constructor(private http: HttpClient) {}
 
   getOffersByLocation(): Observable<JobLocationStats[]> {
     return this.http.get<JobLocationStats[]>(
-      `${this.apiUrl}/offers-by-location`
+      `${this.apiUrl}/countOffersByLocation`
     );
   }
 }

@@ -1,52 +1,52 @@
 {
-  "hash": "93bbff92",
-  "configHash": "d836fc02",
+  "hash": "99f8ea62",
+  "configHash": "a04fa971",
   "lockfileHash": "34f42be7",
-  "browserHash": "c76d8d3b",
+  "browserHash": "dcd27350",
   "optimized": {
     "@angular/common/http": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
       "file": "@angular_common_http.js",
-      "fileHash": "817e5e59",
+      "fileHash": "7d160c29",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "aa80479f",
+      "fileHash": "a4ff094b",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "f26d4707",
+      "fileHash": "79ee752b",
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
-      "fileHash": "7a2deeab",
+      "fileHash": "f92278e7",
       "needsInterop": false
     },
     "ng2-charts": {
       "src": "../../../../../../node_modules/ng2-charts/fesm2022/ng2-charts.mjs",
       "file": "ng2-charts.js",
-      "fileHash": "f5da0e28",
+      "fileHash": "5cdf775d",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-VWXNL42K": {
-      "file": "chunk-VWXNL42K.js"
+    "chunk-VHF6HOIN": {
+      "file": "chunk-VHF6HOIN.js"
     },
-    "chunk-BECXSIPI": {
-      "file": "chunk-BECXSIPI.js"
+    "chunk-3KQE6SU2": {
+      "file": "chunk-3KQE6SU2.js"
     },
-    "chunk-PGPRESNR": {
-      "file": "chunk-PGPRESNR.js"
+    "chunk-RL463Z7Z": {
+      "file": "chunk-RL463Z7Z.js"
     },
-    "chunk-FQ37M4VZ": {
-      "file": "chunk-FQ37M4VZ.js"
+    "chunk-7TFXCMZ2": {
+      "file": "chunk-7TFXCMZ2.js"
     },
     "chunk-XUHYOSOS": {
       "file": "chunk-XUHYOSOS.js"
