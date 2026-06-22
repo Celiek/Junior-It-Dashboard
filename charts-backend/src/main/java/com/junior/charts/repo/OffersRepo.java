@@ -31,14 +31,28 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
             SELECT new com.junior.charts.dto.OffersByLocationDTO(
             CASE 
                 WHEN LOWER(o.location) LIKE '%warszawa%' THEN 'Warszawa'
+                WHEN LOWER(o.location) LIKE '%pruszków%' THEN 'Warszawa'
+                WHEN LOWER(o.location) LIKE '%pruszkowski%' THEN 'Warszawa'
+                WHEN LOWER(o.location) LIKE '%warszawski%' THEN 'Warszawa'
                 WHEN LOWER(o.location) LIKE '%kraków%' THEN 'Kraków'
+                WHEN LOWER(o.location) LIKE '%krakowski%' THEN 'Kraków'
                 WHEN LOWER(o.location) LIKE '%wrocław%' THEN 'Wrocław'
                 WHEN LOWER(o.location) LIKE '%poznań%' THEN 'Poznań'
                 WHEN LOWER(o.location) LIKE '%gdańsk%' THEN 'Gdańsk'
                 WHEN LOWER(o.location) LIKE '%gdynia%' THEN 'Gdynia'
-                when LOWER(o.location) LIKE '%lublin%' THEN 'Lublin',
-                when LOWER(o.location) LIKE '%opole%' THEN 'Opole',
-                when LOWER(o.location) LIKE '%łódź%' THEN 'Łódź',
+                WHEN LOWER(o.location) LIKE '%sopot%' THEN 'Sopot'
+                when LOWER(o.location) LIKE '%lublin%' THEN 'Lublin'
+                when LOWER(o.location) LIKE '%opole%' THEN 'Opole'
+                when LOWER(o.location) LIKE '%łódź%' THEN 'Łódź'
+                when LOWER(o.location) LIKE '%dąbrowa górnicza%' THEN 'Dąbrowa górnicza'
+                when LOWER(o.location) LIKE '%katowice%' THEN 'katowice'
+                when LOWER(o.location) LIKE '%jelenia góra%' THEN 'Jelenia Góra'
+                when LOWER(o.location) LIKE '%gliwice%' THEN 'Gliwice'
+                when LOWER(o.location) LIKE '%szczecin%' THEN 'Szczecin'
+                when LOWER(o.location) LIKE '%rybnik%' THEN 'Rybnik'
+                when LOWER(o.location) LIKE '%racibórz%' THEN 'Racibórz'
+                when LOWER(o.location) LIKE '%toruń%' THEN 'Toruń'
+                when LOWER(o.location) LIKE '%rzeszów%' THEN 'Rzeszów'
                 WHEN LOWER(o.location) LIKE '%remote%' OR LOWER(o.location) LIKE '%zdalna%' THEN 'zdalna'
                 ELSE TRIM(o.location)
             END,
@@ -50,14 +64,28 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
             GROUP BY 
             CASE 
                 WHEN LOWER(o.location) LIKE '%warszawa%' THEN 'Warszawa'
+                WHEN LOWER(o.location) LIKE '%pruszków%' THEN 'Warszawa'
+                WHEN LOWER(o.location) LIKE '%pruszkowski%' THEN 'Warszawa'
+                WHEN LOWER(o.location) LIKE '%warszawski%' THEN 'Warszawa'
                 WHEN LOWER(o.location) LIKE '%kraków%' THEN 'Kraków'
+                WHEN LOWER(o.location) LIKE '%krakowski%' THEN 'Kraków'
                 WHEN LOWER(o.location) LIKE '%wrocław%' THEN 'Wrocław'
                 WHEN LOWER(o.location) LIKE '%poznań%' THEN 'Poznań'
                 WHEN LOWER(o.location) LIKE '%gdańsk%' THEN 'Gdańsk'
                 WHEN LOWER(o.location) LIKE '%gdynia%' THEN 'Gdynia'
-                when LOWER(o.location) LIKE '%lublin%' THEN 'Lublin',
-                when LOWER(o.location) LIKE '%opole%' THEN 'Opole',
-                when LOWER(o.location) LIKE '%łódź%' THEN 'Łódź',
+                WHEN LOWER(o.location) LIKE '%sopot%' THEN 'Sopot'
+                when LOWER(o.location) LIKE '%lublin%' THEN 'Lublin'
+                when LOWER(o.location) LIKE '%opole%' THEN 'Opole'
+                when LOWER(o.location) LIKE '%łódź%' THEN 'Łódź'
+                when LOWER(o.location) LIKE '%dąbrowa górnicza%' THEN 'Dąbrowa górnicza'
+                when LOWER(o.location) LIKE '%katowice%' THEN 'katowice'
+                when LOWER(o.location) LIKE '%jelenia góra%' THEN 'Jelenia Góra'
+                when LOWER(o.location) LIKE '%gliwice%' THEN 'Gliwice'
+                when LOWER(o.location) LIKE '%szczecin%' THEN 'Szczecin'
+                when LOWER(o.location) LIKE '%rybnik%' THEN 'Rybnik'
+                when LOWER(o.location) LIKE '%racibórz%' THEN 'Racibórz'
+                when LOWER(o.location) LIKE '%toruń%' THEN 'Toruń'
+                when LOWER(o.location) LIKE '%rzeszów%' THEN 'Rzeszów'
                 WHEN LOWER(o.location) LIKE '%remote%' OR LOWER(o.location) LIKE '%zdalna%' THEN 'zdalna'
                 ELSE TRIM(o.location)
             END
