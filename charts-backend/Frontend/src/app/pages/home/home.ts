@@ -41,7 +41,7 @@ export class Home implements OnInit {
       },
       title: {
         display: true,
-        text: 'Oferty pracy według lokalizacji'
+        text: 'Oferty pracy według lokalizacji z przedziału 12.2025 do 12.2026'
       }
     },
     scales: {

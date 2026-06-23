@@ -1,13 +1,8 @@
 package com.junior.charts.controller;
 
-import com.junior.charts.dto.AverageSalaryByMonthProjection;
-import com.junior.charts.dto.OfferDto;
-import com.junior.charts.dto.OfferWithContractDTO;
-import com.junior.charts.dto.OffersByLocationDTO;
-import com.junior.charts.entity.Offers;
+import com.junior.charts.dto.*;
 import com.junior.charts.service.OfferService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.repository.query.Param;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -48,5 +42,10 @@ public class OffersController {
     @GetMapping("/averageSalaryByMonth")
     public ResponseEntity<List<AverageSalaryByMonthProjection>> getAverageSalaryByMonth(){
         return ResponseEntity.ok(service.getAverageSalaryByMonth());
+    }
+
+    @GetMapping("/popularTechnologies")
+    public ResponseEntity<List<PopularTechnologyProjection>> findMostPopularTechnologies(){
+        return ResponseEntity.ok(service.findMostPopularTechnologies());
     }
 }

@@ -15,7 +15,7 @@ import java.util.List;
 
 // TODO
 // wszystkie oferty z ostatniego miesiąca DONE
-// oferty policzone ze wszystkich regionów DONE
+// oferty policzone ze wszystkich regionów DONEv2
 // oferty z danego przedziału czasowego DONE
 // lista najpopularniejszych technologii DONE
 // oferty podzielone na kategorie ( może)
@@ -23,6 +23,7 @@ import java.util.List;
 // miesięcy DONE
 // * miasta
 // * technologii
+// najczęstsze formy zatrudnienia
 
 public interface OffersRepo extends JpaRepository<Offers, Long>{
 
@@ -158,15 +159,32 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
     List<Offers> findOffersFromMonthBeforeDate(@Param("date") Date date);
 
     @Query(value = """
-            SELECT
-               LOWER(TRIM(t)) AS technology,
-               COUNT(*) AS count
+            WITH deduplicated_offers AS (
+           SELECT DISTINCT ON (split_part(jo.offer_url, '?', 1))
+               jo.id,
+               jo.offer_url,
+               jo.technologies
            FROM job_offers jo
-           CROSS JOIN unnest(jo.technologies) AS t
+           WHERE jo.offer_url IS NOT NULL
+             AND TRIM(jo.offer_url) <> ''
+             AND jo.technologies IS NOT NULL
+           ORDER BY split_part(jo.offer_url, '?', 1), jo.scraped_at DESC
+       ),
+       offer_technologies AS (
+           SELECT DISTINCT
+               split_part(offer_url, '?', 1) AS clean_offer_url,
+               LOWER(TRIM(t)) AS technology
+           FROM deduplicated_offers
+           CROSS JOIN unnest(technologies) AS t
            WHERE t IS NOT NULL
              AND TRIM(t) <> ''
-           GROUP BY LOWER(TRIM(t))
-           ORDER BY count DESC
+       )
+       SELECT
+           technology,
+           COUNT(*) AS count
+       FROM offer_technologies
+       GROUP BY technology
+       ORDER BY count DESC;
             """,nativeQuery = true)
     List<PopularTechnologyProjection> findMostPopularTechnologies();
 
