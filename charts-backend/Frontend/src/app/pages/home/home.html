@@ -6,9 +6,20 @@
     </p>
 
     <section class="chart-card">
-        <h2>{{ chartTitle }}</h2>
+        <h2>{{ locationChartTitle }}</h2>
+        
+        <div class="chart-wrapper">
+            <canvas baseChart [type]="locationChartType" [data]="locationChartData" [options]="locationChartOptions">
+            </canvas>
+        </div>
+    </section>
 
-        <canvas baseChart [type]="chartType" [data]="chartData" [options]="chartOptions">
-        </canvas>
+    <section class="chart-card">
+        <h2>{{ technologyChartTitle }}</h2>
+    
+        <div class="chart-wrapper technology-chart-wrapper">
+            <canvas baseChart [type]="technologyChartType" [data]="technologyChartData" [options]="technologyChartOptions">
+            </canvas>
+        </div>
     </section>
 </main>
