@@ -12,6 +12,13 @@ export interface JobLocationStats {
   liczba_ofert: string;
 }
 
+export interface AverageSalaryByContractStats {
+  averageSalary: number;
+  contractType: string;
+  month: string;
+  offersCount: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -33,4 +40,10 @@ export class ChartDataService {
       `${this.apiUrl}/popularTechnologies`
     );
   }
+
+getAverageSalaryByContractType(): Observable<AverageSalaryByContractStats[]> {
+  return this.http.get<AverageSalaryByContractStats[]>(
+    `${this.apiUrl}/averageSalaryByMonth`
+  );
+}
 }

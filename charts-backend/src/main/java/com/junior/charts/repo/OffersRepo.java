@@ -1,6 +1,6 @@
 package com.junior.charts.repo;
 
-import com.junior.charts.dto.AverageSalaryByMonthProjection;
+import com.junior.charts.dto.AverageSalaryByMonthAndContractProjection;
 import com.junior.charts.dto.OfferWithContractDTO;
 import com.junior.charts.dto.OffersByLocationDTO;
 import com.junior.charts.dto.PopularTechnologyProjection;
@@ -212,25 +212,45 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
 
     @Query(value = """
              WITH deduplicated_offers AS (
-            SELECT DISTINCT ON (jo.offer_url)
-                jo.id,
-                jo.offer_url,
-                jo.scraped_at
-            FROM job_offers jo
-            WHERE jo.offer_url IS NOT NULL
-            ORDER BY jo.offer_url, jo.scraped_at DESC
-        )
-        SELECT
-            DATE_TRUNC('month', jo.scraped_at) AS month,
-            AVG((joc.salary_min + joc.salary_max) / 2.0) AS averageSalary,
-            COUNT(*) AS offersCount
-        FROM deduplicated_offers jo
-        JOIN job_offer_contracts joc
-          ON jo.id = joc.job_offer_id
-        WHERE joc.salary_min IS NOT NULL
-          AND joc.salary_max IS NOT NULL
-        GROUP BY DATE_TRUNC('month', jo.scraped_at)
-        ORDER BY month DESC
+                      SELECT DISTINCT ON (split_part(jo.offer_url, '?', 1))
+                          jo.id,
+                          split_part(jo.offer_url, '?', 1) AS clean_offer_url,
+                          jo.scraped_at
+                      FROM job_offers jo
+                      WHERE jo.offer_url IS NOT NULL
+                        AND TRIM(jo.offer_url) <> ''
+                      ORDER BY split_part(jo.offer_url, '?', 1), jo.scraped_at DESC
+                  ),
+                  salary_per_offer_and_contract AS (
+                      SELECT
+                          jo.clean_offer_url,
+                          jo.scraped_at,
+                          joc.contract_type,
+                          AVG((joc.salary_min + joc.salary_max) / 2.0) AS offer_avg_salary
+                      FROM deduplicated_offers jo
+                      JOIN job_offer_contracts joc
+                        ON jo.id = joc.job_offer_id
+                      WHERE joc.salary_min IS NOT NULL
+                        AND joc.salary_max IS NOT NULL
+                        AND joc.contract_type IS NOT NULL
+                        AND TRIM(joc.contract_type) <> ''
+                      GROUP BY
+                          jo.clean_offer_url,
+                          jo.scraped_at,
+                          joc.contract_type
+                  )
+                  SELECT
+                      DATE_TRUNC('month', scraped_at) AS month,
+                      contract_type AS contractType,
+                      AVG(offer_avg_salary) AS averageSalary,
+                      COUNT(*) AS offersCount
+                  FROM salary_per_offer_and_contract
+                  GROUP BY
+                      DATE_TRUNC('month', scraped_at),
+                      contract_type
+                  ORDER BY
+                      month DESC,
+                      contract_type ASC
            """,nativeQuery = true)
-    List<AverageSalaryByMonthProjection> getAverageSalaryByMonth();
+    List<AverageSalaryByMonthAndContractProjection> getAverageSalaryByMonth();
 }

@@ -69,7 +69,7 @@ public class OfferService {
         return repo.findOffersWithContract();
     }
 
-    public List<AverageSalaryByMonthProjection> getAverageSalaryByMonth(){
+    public List<AverageSalaryByMonthAndContractProjection> getAverageSalaryByMonth(){
         return repo.getAverageSalaryByMonth();
     }
 

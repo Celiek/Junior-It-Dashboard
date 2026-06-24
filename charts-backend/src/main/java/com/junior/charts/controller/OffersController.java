@@ -40,7 +40,7 @@ public class OffersController {
     }
 
     @GetMapping("/averageSalaryByMonth")
-    public ResponseEntity<List<AverageSalaryByMonthProjection>> getAverageSalaryByMonth(){
+    public ResponseEntity<List<AverageSalaryByMonthAndContractProjection>> getAverageSalaryByMonth(){
         return ResponseEntity.ok(service.getAverageSalaryByMonth());
     }
 

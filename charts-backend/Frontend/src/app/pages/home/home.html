@@ -22,4 +22,13 @@
             </canvas>
         </div>
     </section>
+
+    <section class="chart-card ">
+        <h2>{{ salaryChartTitle }}</h2>
+    
+        <div class="chart-wrapper salary-chart-wrapper">
+            <canvas baseChart [type]="salaryChartType" [data]="salaryChartData" [options]="salaryChartOptions">
+            </canvas>
+        </div>
+    </section>
 </main>
