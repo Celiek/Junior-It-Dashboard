@@ -31,4 +31,13 @@
             </canvas>
         </div>
     </section>
+
+    <section class="chart-card">
+        <h2>{{ offersByCategoryChartTitle }}</h2>
+    
+        <div class="chart-wrapper offers-by-category-chart-wrapper">
+            <canvas baseChart [type]="offersByCategoryChartType" [data]="offersByCategoryChartData" [options]="offersByCategoryChartOptions">
+            </canvas>
+        </div>
+    </section>
 </main>

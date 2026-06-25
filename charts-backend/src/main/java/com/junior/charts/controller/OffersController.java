@@ -48,4 +48,10 @@ public class OffersController {
     public ResponseEntity<List<PopularTechnologyProjection>> findMostPopularTechnologies(){
         return ResponseEntity.ok(service.findMostPopularTechnologies());
     }
+
+    @GetMapping("/countOffersByCategory")
+    public ResponseEntity<List<OffersByCategoryProjection>> countOffersByCategory(){
+        return ResponseEntity.ok(service.countOffersByCategory());
+    }
+
 }

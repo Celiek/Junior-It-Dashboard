@@ -73,4 +73,8 @@ public class OfferService {
         return repo.getAverageSalaryByMonth();
     }
 
+    public List<OffersByCategoryProjection> countOffersByCategory(){
+        return repo.countOffersByCategory();
+    }
+
 }

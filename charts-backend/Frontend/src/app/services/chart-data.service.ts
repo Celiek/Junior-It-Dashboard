@@ -19,6 +19,11 @@ export interface AverageSalaryByContractStats {
   offersCount: number;
 }
 
+export interface OffersByCategory {
+  category: string;
+  count: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -44,6 +49,11 @@ export class ChartDataService {
 getAverageSalaryByContractType(): Observable<AverageSalaryByContractStats[]> {
   return this.http.get<AverageSalaryByContractStats[]>(
     `${this.apiUrl}/averageSalaryByMonth`
-  );
-}
+    );
+  }
+getOffersByCategory(): Observable<OffersByCategory[]> {
+  return this.http.get<OffersByCategory[]>(
+    `${this.apiUrl}/countOffersByCategory`
+    );
+  }
 }

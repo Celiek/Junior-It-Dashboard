@@ -6,7 +6,8 @@ import {
   ChartDataService,
   JobTechnologyStats,
   JobLocationStats,
-  AverageSalaryByContractStats
+  AverageSalaryByContractStats,
+  OffersByCategory
 } from '../../services/chart-data.service';
 
 @Component({
@@ -20,10 +21,13 @@ export class Home implements OnInit {
   public locationChartTitle = 'Oferty pracy według lokalizacji';
   public technologyChartTitle = 'Najpopularniejsze technologie w ofertach pracy';
   public salaryChartTitle = 'Średnie zarobki według rodzaju umowy';
+  public offersByCategoryChartTitle='Oferty pracy według kategorii';
+
 
   public locationChartType: 'bar' = 'bar';
   public technologyChartType: 'bar' = 'bar';
   public salaryChartType: 'bar' = 'bar';
+  public offersByCategoryChartType: 'bar' = 'bar';
 
   public locationChartData: ChartConfiguration<'bar'>['data'] = {
     labels: [],
@@ -48,6 +52,16 @@ export class Home implements OnInit {
   public salaryChartData: ChartConfiguration<'bar'>['data'] = {
     labels: [],
     datasets: [],
+  };
+
+  public offersByCategoryChartData: ChartConfiguration<'bar'>['data'] = {
+    labels: [],
+    datasets: [
+      {
+        label: 'Liczba ofert',
+        data: [],
+      },
+    ],
   };
 
   public locationChartOptions: ChartConfiguration<'bar'>['options'] = {
@@ -143,12 +157,38 @@ export class Home implements OnInit {
   },
 };
 
+public offersByCategoryChartOptions: ChartConfiguration<'bar'>['options'] = {
+  responsive: true,
+  maintainAspectRatio: false,
+  indexAxis: 'y',
+  plugins: {
+    legend: {
+      display: true,
+    },
+    title: {
+      display: true,
+      text: 'Oferty pracy według kategorii (podział według nazwy stanowiska) ',
+    },
+  },
+  scales: {
+    x: {
+      beginAtZero: true,
+    },
+    y: {
+      ticks: {
+        autoSkip: false,
+      },
+    },
+  },
+};
+
   constructor(private chartDataService: ChartDataService) {}
 
   ngOnInit(): void {
     this.loadLocationChart();
     this.loadTechnologyChart();
     this.loadSalaryChart();
+    this.loadOffersByCategoryChart();
   }
 
   private loadLocationChart(): void {
@@ -290,4 +330,47 @@ export class Home implements OnInit {
       year: 'numeric',
     }).format(new Date(month));
   }
+
+  private loadOffersByCategoryChart(): void {
+  this.chartDataService.getOffersByCategory().subscribe({
+    next: (response: OffersByCategory[]) => {
+      console.log('Dane ofert według kategorii:', response);
+
+      const jobCategories = response.filter(
+        item => item.category &&
+        item.count !== null &&
+        item.count !== undefined)
+        .sort((a, b) => Number(b.count) - Number(a.count))
+        .slice(0, 100);
+
+      if (jobCategories.length === 0) {
+        this.offersByCategoryChartTitle = 'Brak danych o ofertach';
+        this.offersByCategoryChartData = {
+          labels: [],
+          datasets: [],
+        };
+        return;
+      }
+
+      this.offersByCategoryChartTitle = 'Liczba ofert według kategorii';
+
+      this.offersByCategoryChartData = {
+        labels: jobCategories.map(item => item.category),
+        datasets: [
+          {
+            label: 'Liczba ofert',
+            data: jobCategories.map(item => Number(item.count)),
+          },
+        ],
+      };
+    },
+    error: error => {
+      console.error('Błąd pobierania ofert według kategorii:', error);
+      this.offersByCategoryChartTitle = 'Nie udało się pobrać danych o ofertach';
+    },
+  });
+}
+
+
+
 }
