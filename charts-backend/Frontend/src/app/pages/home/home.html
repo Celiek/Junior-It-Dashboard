@@ -11,6 +11,8 @@
         <div class="chart-wrapper">
             <canvas baseChart [type]="locationChartType" [data]="locationChartData" [options]="locationChartOptions">
             </canvas>
+            <p>{{ locationChartData.labels }}</p>
+            <p>{{ locationChartData.datasets[0].data }}</p>
         </div>
     </section>
 

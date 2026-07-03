@@ -1,5 +1,5 @@
 .dashboard {
-    max-width: 1100px;
+    /* max-width: 1100px; */
     margin: 0 auto;
     padding: 32px;
     font-family: Arial, sans-serif;
@@ -18,17 +18,17 @@
     width: 100%;
 }
 
-.technology-chart-wrapper{
+.technology-chart-wrapper {
     height: 3700px;
     width: 100%;
 }
 
-.salary-chart-wrapper{
+.salary-chart-wrapper {
     height: 1000px;
     width: 100%;
 }
 
-.offers-by-category-chart-wrapper{
+.offers-by-category-chart-wrapper {
     height: 1000px;
     width: 100%;
 }

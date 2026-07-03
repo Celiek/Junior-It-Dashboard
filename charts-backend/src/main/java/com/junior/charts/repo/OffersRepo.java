@@ -15,7 +15,7 @@ import java.util.List;
 // oferty policzone ze wszystkich regionów DONEv2
 // oferty z danego przedziału czasowego DONE
 // lista najpopularniejszych technologii DONE
-// oferty podzielone na kategorie ( może)
+// oferty podzielone na kategorie DONE
 // średnie zarobki dla :
 // miesięcy DONE
 // * miasta
