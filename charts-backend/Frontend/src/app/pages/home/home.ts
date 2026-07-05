@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration } from 'chart.js';
-
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ChartModule } from 'angular-highcharts';
+import { Chart } from 'angular-highcharts';
 import {
   ChartDataService,
   JobTechnologyStats,
@@ -10,179 +9,135 @@ import {
   OffersByCategory
 } from '../../services/chart-data.service';
 
+
+import * as Highcharts from 'highcharts';
+
+
+Highcharts.setOptions({
+
+  colors: [
+    '#36A2EB',
+    '#4BC0C0',
+    '#FFCE56',
+    '#FF6384',
+    '#9966FF',
+    '#FF9F40',
+    '#8BC34A',
+    '#26C6DA',
+    '#5C6BC0',
+    '#66BB6A'
+  ],
+
+  chart: {
+    backgroundColor: '#ffffff',
+    style: {
+      fontFamily: 'Inter, Roboto, Arial, sans-serif'
+    }
+  },
+
+  title: {
+    style: {
+      color: '#333',
+      fontSize: '18px',
+      fontWeight: '600'
+    }
+  },
+
+  subtitle: {
+    style: {
+      color: '#666'
+    }
+  },
+
+  xAxis: {
+    lineColor: '#dddddd',
+    tickColor: '#dddddd',
+    gridLineWidth: 0,
+    labels: {
+      style: {
+        color: '#555',
+        fontSize: '12px'
+      }
+    }
+  },
+
+  yAxis: {
+    gridLineColor: '#eeeeee',
+
+    labels: {
+      style: {
+        color: '#555',
+        fontSize: '12px'
+      }
+    },
+
+    title: {
+      style: {
+        color: '#555',
+        fontSize: '13px'
+      }
+    }
+  },
+
+  legend: {
+    itemStyle: {
+      color: '#444',
+      fontWeight: '500'
+    }
+  },
+
+  tooltip: {
+    backgroundColor: '#ffffff',
+    borderColor: '#dddddd',
+    borderRadius: 8,
+    shadow: false
+  },
+
+  plotOptions: {
+
+    series: {
+      animation: {
+        duration: 500
+      }
+    },
+
+    bar: {
+      colorByPoint: true
+    },
+
+    column: {
+      colorByPoint: true
+    }
+  }
+
+});
+
+
 @Component({
   selector: 'app-home',
-  imports: [BaseChartDirective],
+  standalone: true,
   templateUrl: './home.html',
   styleUrl: './home.css',
+  imports: [ChartModule]
 })
 export class Home implements OnInit {
+
+  
+
+  locationChart!: Chart;
+  technologyChart!: Chart;
+  salaryChart!: Chart;
+  offersByCategoryChart!: Chart;
+
+  constructor(
+    private chartDataService: ChartDataService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   public locationChartTitle = 'Oferty pracy według lokalizacji';
   public technologyChartTitle = 'Najpopularniejsze technologie w ofertach pracy';
   public salaryChartTitle = 'Średnie zarobki według rodzaju umowy';
-  public offersByCategoryChartTitle='Oferty pracy według kategorii';
-
-
-  public locationChartType: 'bar' = 'bar';
-  public technologyChartType: 'bar' = 'bar';
-  public salaryChartType: 'bar' = 'bar';
-  public offersByCategoryChartType: 'bar' = 'bar';
-
-  public locationChartData: ChartConfiguration<'bar'>['data'] = {
-    labels: [],
-    datasets: [
-      {
-        label: 'Liczba ofert',
-        data: [],
-      },
-    ],
-  };
-
-  public technologyChartData: ChartConfiguration<'bar'>['data'] = {
-    labels: [],
-    datasets: [
-      {
-        label: 'Liczba ofert',
-        data: [],
-      },
-    ],
-  };
-
-  public salaryChartData: ChartConfiguration<'bar'>['data'] = {
-    labels: [],
-    datasets: [],
-  };
-
-  public offersByCategoryChartData: ChartConfiguration<'bar'>['data'] = {
-    labels: [],
-    datasets: [
-      {
-        label: 'Liczba ofert',
-        data: [],
-      },
-    ],
-  };
-
-  public locationChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: {
-      legend: {
-        display: true,
-      },
-      title: {
-        display: true,
-        text: 'Oferty pracy według lokalizacji',
-      },
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-      },
-      y: {
-        ticks: {
-          autoSkip: false,
-        },
-      },
-    },
-  };
-
-  public technologyChartOptions: ChartConfiguration<'bar'>['options'] = {
-    responsive: true,
-    maintainAspectRatio: false,
-    indexAxis: 'y',
-    plugins: {
-      legend: {
-        display: true,
-      },
-      title: {
-        display: true,
-        text: 'Oferty pracy według technologii',
-      },
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-      },
-      y: {
-        ticks: {
-          autoSkip: false,
-        },
-      },
-    },
-  };
-
-  public salaryChartOptions: ChartConfiguration<'bar'>['options'] = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: true,
-      position: 'top',
-    },
-    title: {
-      display: true,
-      text: 'Średnie zarobki według rodzaju umowy i miesiąca',
-    },
-    tooltip: {
-      callbacks: {
-        label: context => {
-          const value = context.parsed.y;
-
-          if (value === null || value === undefined) {
-            return `${context.dataset.label}: brak danych`;
-          }
-
-          return `${context.dataset.label}: ${Number(value).toLocaleString('pl-PL')} zł`;
-        },
-      },
-    },
-  },
-  scales: {
-    y: {
-      beginAtZero: true,
-      ticks: {
-        callback: value => `${Number(value).toLocaleString('pl-PL')} zł`,
-      },
-    },
-    x: {
-      ticks: {
-        autoSkip: false,
-        maxRotation: 45,
-        minRotation: 20,
-      },
-    },
-  },
-};
-
-public offersByCategoryChartOptions: ChartConfiguration<'bar'>['options'] = {
-  responsive: true,
-  maintainAspectRatio: false,
-  indexAxis: 'y',
-  plugins: {
-    legend: {
-      display: true,
-    },
-    title: {
-      display: true,
-      text: 'Oferty pracy według kategorii (podział według nazwy stanowiska) ',
-    },
-  },
-  scales: {
-    x: {
-      beginAtZero: true,
-    },
-    y: {
-      ticks: {
-        autoSkip: false,
-      },
-    },
-  },
-};
-
-  constructor(private chartDataService: ChartDataService) {}
+  public offersByCategoryChartTitle = 'Oferty pracy według kategorii';
 
   ngOnInit(): void {
     this.loadLocationChart();
@@ -193,136 +148,254 @@ public offersByCategoryChartOptions: ChartConfiguration<'bar'>['options'] = {
 
   private loadLocationChart(): void {
     this.chartDataService.getOffersByLocation().subscribe({
-      next: (response: JobLocationStats[]) => {
-        console.log('Dane lokalizacji:', response);
+    next: (response) => {
 
-        const topLocations = response
-          .filter(item =>
-            item.location &&
-            item.liczba_ofert !== null &&
-            item.liczba_ofert !== undefined
-          )
-          .sort((a, b) => Number(b.liczba_ofert) - Number(a.liczba_ofert))
-          .slice(0, 30);
+      const top = response
+        .filter(i => i.location && i.liczba_ofert != null)
+        .sort((a, b) => Number(b.liczba_ofert) - Number(a.liczba_ofert))
+        .slice(0, 30);
 
-        this.locationChartData = {
-          labels: topLocations.map(item => item.location),
-          datasets: [
-            {
-              label: 'Liczba ofert',
-              data: topLocations.map(item => Number(item.liczba_ofert)),
-            },
-          ],
-        };
-      },
-      error: error => {
-        console.error('Błąd pobierania lokalizacji:', error);
-        this.locationChartTitle = 'Nie udało się pobrać danych lokalizacji';
-      },
-    });
+      const labels = top.map(i => i.location);
+      const data = top.map(i => Number(i.liczba_ofert));
+
+      this.locationChart = new Chart({
+        chart: {
+          type: 'bar',
+          height: 900,
+          width: null,
+          backgroundColor: '#ffffff',
+          plotBackgroundColor: '#ffffff',
+          plotBorderWidth: 0,
+          style: {
+            fontFamily: 'Arial'
+          },
+        },
+        title: { text: 'Oferty pracy według lokalizacji',style: { color: '#000000', fontSize: '18px', fontWeight: '600' } },
+        xAxis: { categories: labels,labels: { style: { color: '#000000' } } },
+        yAxis: { title: { text: 'Liczba ofert' }, labels: { style: { color: '#000000' } } },
+        plotOptions: {
+          bar: {
+            pointWidth: 20,
+            pointPadding: 1,
+            groupPadding: 0.05,
+            colorByPoint: true
+          }
+        },
+        legend: { itemStyle: { color: '#000000' } },
+        series: [
+          {
+            type: 'bar',
+            name: 'Liczba ofert',
+            data: data
+          }
+        ]
+      });
+
+
+      queueMicrotask(() => {
+        this.cdr.detectChanges();
+
+
+        this.locationChart.ref?.redraw();
+        this.locationChart.ref?.reflow();
+      });
+    }
+  });
   }
 
   private loadTechnologyChart(): void {
     this.chartDataService.getOffersByTechnology().subscribe({
       next: (response: JobTechnologyStats[]) => {
-        console.log('Dane technologii z API:', response);
 
-        const topTechnologies = response
-          .filter(item =>
-            item.technology &&
-            item.count !== null &&
-            item.count !== undefined
-          )
+        const top = response
+          .filter(i => i.technology && i.count != null)
           .sort((a, b) => Number(b.count) - Number(a.count))
           .slice(0, 100);
 
-        console.log('Top technologie po sortowaniu:', topTechnologies);
+        const labels = top.map(i => i.technology);
+        const data = top.map(i => Number(i.count));
 
-        this.technologyChartData = {
-          labels: topTechnologies.map(item => item.technology),
-          datasets: [
-            {
-              label: 'Liczba ofert',
-              data: topTechnologies.map(item => Number(item.count)),
-            },
-          ],
-        };
-      },
-      error: error => {
-        console.error('Błąd pobierania technologii:', error);
-        this.technologyChartTitle = 'Nie udało się pobrać danych technologii';
-      },
-    });
+        this.technologyChart = new Chart({
+        chart: {
+          type: 'bar',
+          height: 1900,
+          width: null,
+          backgroundColor: '#ffffff',
+          plotBackgroundColor: '#ffffff',
+          plotBorderWidth: 0,
+          style: {
+            fontFamily: 'Arial'
+          },
+        },
+        title: { text: 'Najpopularniejsze technologie',style: { color: '#000000', fontSize: '18px', fontWeight: '600' } },
+        xAxis: { categories: labels,labels: { style: { color: '#000000' } } },
+        yAxis: { title: { text: 'Liczba ofert z podziałem na kategorie' }, labels: { style: { color: '#000000' } } },
+        plotOptions: {
+          bar: {
+            pointWidth: 15,
+            pointPadding: 2,
+            groupPadding: 0.5,
+            colorByPoint: true
+          }
+        },
+        legend: { itemStyle: { color: '#000000' } },
+        series: [
+          {
+            type: 'bar',
+            name: 'Liczba ofert',
+            data: data
+          }
+        ]
+      });
+
+      queueMicrotask(() => {
+        this.cdr.detectChanges();
+        this.technologyChart.ref?.redraw();
+        this.technologyChart.ref?.reflow();
+      });
+    }
+  });
   }
 
   private loadSalaryChart(): void {
-  this.chartDataService.getAverageSalaryByContractType().subscribe({
-    next: (response: AverageSalaryByContractStats[]) => {
-      console.log('Dane średnich zarobków:', response);
+    this.chartDataService.getAverageSalaryByContractType().subscribe({
+      next: (response: AverageSalaryByContractStats[]) => {
 
-      const validData = response.filter(item =>
-        item.contractType &&
-        item.month &&
-        item.averageSalary !== null &&
-        item.averageSalary !== undefined &&
-        item.offersCount !== null &&
-        item.offersCount !== undefined
-      );
-
-      if (validData.length === 0) {
-        this.salaryChartTitle = 'Brak danych o zarobkach';
-        this.salaryChartData = {
-          labels: [],
-          datasets: [],
-        };
-        return;
-      }
-
-      const months = Array.from(
-        new Set(validData.map(item => item.month))
-      ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-
-      const contractOfferCount = new Map<string, number>();
-
-      validData.forEach(item => {
-        const current = contractOfferCount.get(item.contractType) ?? 0;
-        contractOfferCount.set(
-          item.contractType,
-          current + Number(item.offersCount)
+        const valid = response.filter(i =>
+          i.contractType &&
+          i.month &&
+          i.averageSalary != null &&
+          i.offersCount != null
         );
+
+        if (valid.length === 0) {
+          this.salaryChart = new Chart({
+            chart: {type: 'bar'},
+            series:[]});
+          return;
+        }
+
+        const months = Array.from(new Set(valid.map(i => i.month)))
+          .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+        const contractTotals = new Map<string, number>();
+        valid.forEach(i => {
+          contractTotals.set(
+            i.contractType,
+            (contractTotals.get(i.contractType) ?? 0) + Number(i.offersCount)
+          );
+        });
+
+        const topContracts = Array.from(contractTotals.entries())
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 4)
+          .map(e => e[0]);
+
+        const salaryMap = new Map<string, number>();
+        valid.forEach(i => {
+          salaryMap.set(`${i.month}|${i.contractType}`, Math.round(Number(i.averageSalary)));
+        });
+
+        const series = topContracts.map(contract => ({
+          name: contract,
+          type: 'line',
+          data: months.map(m => salaryMap.get(`${m}|${contract}`) ?? null)
+        }));
+
+      this.salaryChart = new Chart({
+        chart: {
+          type: 'line',
+          height: 600,
+          backgroundColor: '#ffffff'
+        },
+        colors: ['#4CAF50', '#2196F3', '#FF9800', '#E91E63'],
+        title: {
+          text: 'Średnie zarobki według rodzaju umowy',
+          style: { color: '#333333' }
+        },
+        xAxis: {
+          categories: months.map(m => this.formatMonth(m)),
+          labels: { style: { color: '#333333' } }
+        },
+        yAxis: {
+          title: { text: 'Średnie zarobki (PLN)', style: { color: '#333333' } },
+          labels: { style: { color: '#333333' } }
+        },
+        plotOptions: {
+          series: {
+            marker: { enabled: true },
+            lineWidth: 3
+          }
+        },
+        series
       });
 
-      const topContractTypes = Array.from(contractOfferCount.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 4)
-        .map(entry => entry[0]);
-
-      const salaryMap = new Map<string, number>();
-
-      validData.forEach(item => {
-        const key = `${item.month}|${item.contractType}`;
-        salaryMap.set(key, Math.round(Number(item.averageSalary)));
+      queueMicrotask(() => {
+        this.cdr.detectChanges();
+        this.salaryChart.ref?.redraw();
+        this.salaryChart.ref?.reflow();
       });
-
-      this.salaryChartTitle = 'Średnie zarobki według rodzaju umowy i miesiąca';
-
-      this.salaryChartData = {
-        labels: months.map(month => this.formatMonth(month)),
-        datasets: topContractTypes.map(contractType => ({
-          label: contractType,
-          data: months.map(month => {
-            const key = `${month}|${contractType}`;
-            return salaryMap.get(key) ?? null;
-          }),
-        })),
-      };
-    },
-    error: error => {
-      console.error('Błąd pobierania średnich zarobków:', error);
-      this.salaryChartTitle = 'Nie udało się pobrać danych o zarobkach';
-    },
+    }
   });
 }
+
+private loadOffersByCategoryChart(): void {
+  this.chartDataService.getOffersByCategory().subscribe({
+    next: (response: OffersByCategory[]) => {
+
+      const top = response
+        .filter(i => i.category && i.count != null)
+        .sort((a, b) => Number(b.count) - Number(a.count))
+        .slice(0, 100);
+
+      const labels = top.map(i => i.category);
+      const data = top.map(i => Number(i.count));
+
+      this.offersByCategoryChart = new Chart({
+        chart: {
+          type: 'bar',
+          height: 900,
+          backgroundColor: '#ffffff'
+        },
+        colors: ['#4CAF50', '#2196F3', '#FF9800', '#E91E63'],
+        title: {
+          text: 'Oferty pracy według kategorii',
+          style: { color: '#333333' }
+        },
+        xAxis: {
+          categories: labels,
+          labels: { style: { color: '#333333' } }
+        },
+        yAxis: {
+          title: { text: 'Liczba ofert', style: { color: '#333333' } },
+          labels: { style: { color: '#333333' } }
+        },
+        plotOptions: {
+          bar: {
+            pointWidth: 20,
+            pointPadding: 1,
+            groupPadding: 0.05
+          }
+        },
+        series: [
+          {
+            type: 'bar',
+            name: 'Liczba ofert',
+            data: data
+          }
+        ]
+      });
+
+
+      queueMicrotask(() => {
+        this.cdr.detectChanges();
+        this.offersByCategoryChart.ref?.redraw();
+        this.offersByCategoryChart.ref?.reflow();
+      });
+    }
+  });
+}
+
 
   private formatMonth(month: string): string {
     return new Intl.DateTimeFormat('pl-PL', {
@@ -330,47 +403,4 @@ public offersByCategoryChartOptions: ChartConfiguration<'bar'>['options'] = {
       year: 'numeric',
     }).format(new Date(month));
   }
-
-  private loadOffersByCategoryChart(): void {
-  this.chartDataService.getOffersByCategory().subscribe({
-    next: (response: OffersByCategory[]) => {
-      console.log('Dane ofert według kategorii:', response);
-
-      const jobCategories = response.filter(
-        item => item.category &&
-        item.count !== null &&
-        item.count !== undefined)
-        .sort((a, b) => Number(b.count) - Number(a.count))
-        .slice(0, 100);
-
-      if (jobCategories.length === 0) {
-        this.offersByCategoryChartTitle = 'Brak danych o ofertach';
-        this.offersByCategoryChartData = {
-          labels: [],
-          datasets: [],
-        };
-        return;
-      }
-
-      this.offersByCategoryChartTitle = 'Liczba ofert według kategorii';
-
-      this.offersByCategoryChartData = {
-        labels: jobCategories.map(item => item.category),
-        datasets: [
-          {
-            label: 'Liczba ofert',
-            data: jobCategories.map(item => Number(item.count)),
-          },
-        ],
-      };
-    },
-    error: error => {
-      console.error('Błąd pobierania ofert według kategorii:', error);
-      this.offersByCategoryChartTitle = 'Nie udało się pobrać danych o ofertach';
-    },
-  });
-}
-
-
-
 }

@@ -1,0 +1,45 @@
+<main class="dashboard">
+    <h1>Junior IT Market Dashboard</h1>
+
+    <p>
+        Analiza ofert pracy dla juniorów IT w Polsce.
+    </p>
+
+    <section class="chart-card">
+        <h2>{{ locationChartTitle }}</h2>
+        
+        <div class="chart-wrapper">
+            <canvas baseChart [type]="locationChartType" [data]="locationChartData" [options]="locationChartOptions">
+            </canvas>
+            <p>{{ locationChartData.labels }}</p>
+            <p>{{ locationChartData.datasets[0].data }}</p>
+        </div>
+    </section>
+
+    <section class="chart-card">
+        <h2>{{ technologyChartTitle }}</h2>
+    
+        <div class="chart-wrapper technology-chart-wrapper">
+            <canvas baseChart [type]="technologyChartType" [data]="technologyChartData" [options]="technologyChartOptions">
+            </canvas>
+        </div>
+    </section>
+
+    <section class="chart-card ">
+        <h2>{{ salaryChartTitle }}</h2>
+    
+        <div class="chart-wrapper salary-chart-wrapper">
+            <canvas baseChart [type]="salaryChartType" [data]="salaryChartData" [options]="salaryChartOptions">
+            </canvas>
+        </div>
+    </section>
+
+    <section class="chart-card">
+        <h2>{{ offersByCategoryChartTitle }}</h2>
+    
+        <div class="chart-wrapper offers-by-category-chart-wrapper">
+            <canvas baseChart [type]="offersByCategoryChartType" [data]="offersByCategoryChartData" [options]="offersByCategoryChartOptions">
+            </canvas>
+        </div>
+    </section>
+</main>
