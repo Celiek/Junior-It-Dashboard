@@ -207,7 +207,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
             """)
     List<OfferWithContractDTO> findOffersWithContract();
 
-    //z jakiegoś powodu nie wyświetla umów b2b po kwietniu 
+    //z jakiegoś powodu nie wyświetla umów b2b po kwietniu
     @Query(value = """
              WITH deduplicated_offers AS (
                       SELECT DISTINCT ON (split_part(jo.offer_url, '?', 1))

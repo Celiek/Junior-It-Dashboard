@@ -1,0 +1,56 @@
+pipeline {
+    agent any
+
+    environment {
+        REMOTE_HOST = "marcin201.mikrus.xyz"
+        REMOTE_USER = "root"
+        REMOTE_PATH = "/var/www/juniorChartsFrontend"
+        SSH_CREDENTIALS = "mikrus-ssh"
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh """
+                    npm ci
+                    npm install -g @angular/cli
+                """
+            }
+        }
+
+        stage('Build Angular') {
+            steps {
+                sh """
+                    ng build --configuration production
+                """
+            }
+        }
+
+        stage('Upload to Mikrus') {
+            steps {
+                sshagent(credentials: [SSH_CREDENTIALS]) {
+                    sh """
+                        rsync -avz --delete dist/juniorChartsFrontend/ ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/
+                    """
+                }
+            }
+        }
+
+        stage('Reload Nginx') {
+            steps {
+                sshagent(credentials: [SSH_CREDENTIALS]) {
+                    sh """
+                        ssh ${REMOTE_USER}@${REMOTE_HOST} 'systemctl reload nginx'
+                    """
+                }
+            }
+        }
+    }
+}
