@@ -50,7 +50,7 @@ pipeline {
         stage('Reload Nginx') {
             steps {
                 sshagent(credentials: [SSH_CREDENTIALS]) {
-                   ssh """
+                   sh """
                         ssh -p ${REMOTE_PORT} -o StrictHostKeyChecking=no ${REMOTE_USER}@${REMOTE_HOST} 'systemctl reload nginx'
                     """
                 }
