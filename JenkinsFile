@@ -16,28 +16,24 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Build Angular Frontend') {
             steps {
-                sh """
-                    npm ci
-                    npm install -g @angular/cli
-                """
+                dir('frontend') {
+                    sh """
+                        npm ci
+                        npm install -g @angular/cli
+                        ng build --configuration production
+                    """
+                }
             }
         }
 
-        stage('Build Angular') {
-            steps {
-                sh """
-                    ng build --configuration production
-                """
-            }
-        }
-
-        stage('Upload to Mikrus') {
+        stage('Upload Frontend to Mikrus') {
             steps {
                 sshagent(credentials: [SSH_CREDENTIALS]) {
                     sh """
-                        rsync -avz --delete dist/juniorChartsFrontend/ ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/
+                        rsync -avz --delete frontend/dist/juniorChartsFrontend/ \
+                        ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_PATH}/
                     """
                 }
             }
