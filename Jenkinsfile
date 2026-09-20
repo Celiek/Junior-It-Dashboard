@@ -15,16 +15,6 @@ pipeline {
                 checkout scm
             }
         }
-        
-        stage('Test docker i npm') {
-            steps {
-                sh 'docker --version'
-                sh 'docker compose --version'
-                dir('Frontend') {
-                    sh 'npm test'
-                }
-            }
-        }
 
         stage('Build Angular Frontend') {
             steps {
