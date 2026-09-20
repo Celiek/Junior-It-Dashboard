@@ -20,7 +20,7 @@ pipeline {
             steps {
                 sh 'docker --version'
                 sh 'docker compose --version'
-                dir('frontend') {
+                dir('Frontend') {
                     sh 'npm test'
                 }
             }
@@ -28,7 +28,7 @@ pipeline {
 
         stage('Build Angular Frontend') {
             steps {
-                dir('frontend') {
+                dir('Frontend') {
                     sh """
                         npm ci
                         npm install -g @angular/cli
