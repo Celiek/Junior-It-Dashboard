@@ -16,11 +16,14 @@ pipeline {
             }
         }
         
-        stage('Test docker i ') {
+        stage('Test docker i npm') {
             steps {
                 sh 'docker --version'
-                sh 'docker-compose --version'
+                sh 'docker compose --version'
                 sh 'npm test'
+                dir('frontend') {
+                    sh 'npm test'
+                }
             }
         }
 
