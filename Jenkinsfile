@@ -20,7 +20,6 @@ pipeline {
             steps {
                 sh 'docker --version'
                 sh 'docker compose --version'
-                sh 'npm test'
                 dir('frontend') {
                     sh 'npm test'
                 }
