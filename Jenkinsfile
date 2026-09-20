@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:20'
-            args '-u root'
-        }
-    }
+    agent {label 'local'}
 
     environment {
         REMOTE_HOST = "marcin201.mikrus.xyz"
