@@ -15,7 +15,7 @@ import {
   ɵɵdefineNgModule,
   ɵɵdirectiveInject,
   ɵɵinject
-} from "./chunk-5KF56V67.js";
+} from "./chunk-5ZIDYOZU.js";
 import {
   __objRest,
   __spreadProps,
