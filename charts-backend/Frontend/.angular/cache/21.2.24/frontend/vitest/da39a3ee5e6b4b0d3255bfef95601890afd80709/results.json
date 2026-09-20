@@ -1,0 +1,1 @@
+{"version":"4.1.11","results":[["frontend:src/app/pages/home/home.spec.ts",{"duration":0,"failed":true}],["frontend:src/app/app.spec.ts",{"duration":61.6273819999999,"failed":false}],["frontend:src/app/services/chart-data.spec.ts",{"duration":27.273042000000032,"failed":false}]]}
