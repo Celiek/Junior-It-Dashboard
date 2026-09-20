@@ -21,8 +21,7 @@ pipeline {
                 dir('Frontend') {
                     sh """
                         npm ci
-                        npm install -g @angular/cli
-                        ng build --configuration production
+                        npm run build -- --configuration production
                     """
                 }
             }
