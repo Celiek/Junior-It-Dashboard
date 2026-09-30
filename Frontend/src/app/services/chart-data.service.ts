@@ -29,8 +29,8 @@ export interface OffersByCategory {
 })
 export class ChartDataService {
 
-  //private readonly apiUrl = 'https://charts-backend-446117273077.europe-west1.run.app/api/offers';
-  private readonly apiUrl = 'http://localhost:8080/api/offers';
+  private readonly apiUrl = 'https://charts-backend-446117273077.europe-west1.run.app/api/offers';
+  //private readonly apiUrl = 'http://localhost:8080/api/offers';
 
   constructor(private http: HttpClient) {}
 

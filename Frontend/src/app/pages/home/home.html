@@ -1,45 +1,58 @@
 <main class="dashboard">
     <h1>Junior IT Market Dashboard</h1>
+    <p>Analiza ofert pracy dla juniorów IT w Polsce.</p>
 
-    <p>
-        Analiza ofert pracy dla juniorów IT w Polsce.
-    </p>
-
+    <!-- 1. Lokalizacje -->
     <section class="chart-card">
         <h2>{{ locationChartTitle }}</h2>
-        
         <div class="chart-wrapper">
+            @if (locationChartData.labels && locationChartData.labels.length > 0) {
             <canvas baseChart [type]="locationChartType" [data]="locationChartData" [options]="locationChartOptions">
             </canvas>
-            <p>{{ locationChartData.labels }}</p>
-            <p>{{ locationChartData.datasets[0].data }}</p>
+            } @else {
+            <div class="chart-loading">Ładowanie danych o lokalizacjach...</div>
+            }
         </div>
     </section>
 
+    <!-- 2. Technologie -->
     <section class="chart-card">
         <h2>{{ technologyChartTitle }}</h2>
-    
         <div class="chart-wrapper technology-chart-wrapper">
-            <canvas baseChart [type]="technologyChartType" [data]="technologyChartData" [options]="technologyChartOptions">
+            @if (technologyChartData.labels && technologyChartData.labels.length > 0) {
+            <canvas baseChart [type]="technologyChartType" [data]="technologyChartData"
+                [options]="technologyChartOptions">
             </canvas>
+            } @else {
+            <div class="chart-loading">Ładowanie danych o technologiach...</div>
+            }
         </div>
     </section>
 
-    <section class="chart-card ">
+    <!-- 3. Wynagrodzenia -->
+    <section class="chart-card">
         <h2>{{ salaryChartTitle }}</h2>
-    
         <div class="chart-wrapper salary-chart-wrapper">
+            @if (salaryChartData.datasets && salaryChartData.datasets.length > 0) {
             <canvas baseChart [type]="salaryChartType" [data]="salaryChartData" [options]="salaryChartOptions">
             </canvas>
+            } @else {
+            <div class="chart-loading">Ładowanie danych o zarobkach...</div>
+            }
         </div>
     </section>
 
+    <!-- 4. Kategorie -->
     <section class="chart-card">
         <h2>{{ offersByCategoryChartTitle }}</h2>
-    
         <div class="chart-wrapper offers-by-category-chart-wrapper">
-            <canvas baseChart [type]="offersByCategoryChartType" [data]="offersByCategoryChartData" [options]="offersByCategoryChartOptions">
+            @if (offersByCategoryChartData.labels && offersByCategoryChartData.labels.length > 0) {
+            <canvas baseChart [type]="offersByCategoryChartType" [data]="offersByCategoryChartData"
+                [options]="offersByCategoryChartOptions">
             </canvas>
+            } @else {
+            <div class="chart-loading">Ładowanie danych o kategoriach...</div>
+            }
         </div>
     </section>
 </main>

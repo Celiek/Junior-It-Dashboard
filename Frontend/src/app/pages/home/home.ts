@@ -1,6 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, QueryList } from '@angular/core';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 import {
   ChartDataService,
@@ -17,6 +20,8 @@ import {
   styleUrl: './home.css',
 })
 export class Home implements OnInit {
+
+  @ViewChild(BaseChartDirective) charts?: QueryList<BaseChartDirective>;
 
   public locationChartTitle = 'Oferty pracy według lokalizacji';
   public technologyChartTitle = 'Najpopularniejsze technologie w ofertach pracy';
@@ -214,6 +219,7 @@ public offersByCategoryChartOptions: ChartConfiguration<'bar'>['options'] = {
             },
           ],
         };
+        this.charts?.forEach(chart => chart.update());
       },
       error: error => {
         console.error('Błąd pobierania lokalizacji:', error);
