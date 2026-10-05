@@ -1,1 +1,323 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   1. RESET & BAZA (Global Base)
+   ========================================================================== */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    background-color: #f8fafc;
+    /* slate-50 */
+    color: #1e293b;
+    /* slate-800 */
+    transition: background-color 0.2s ease, color 0.2s ease;
+    min-height: 100vh;
+}
+
+/* Tryb Ciemny (Dark Mode) */
+html.dark body {
+    background-color: #020617;
+    /* slate-950 */
+    color: #f8fafc;
+    /* slate-50 */
+}
+
+/* ==========================================================================
+   2. UKŁAD STRONY & KONTENERY
+   ========================================================================== */
+.min-h-screen {
+    min-height: 100vh;
+}
+
+.max-w-6xl {
+    max-width: 72rem;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+.space-y-4>*+* {
+    margin-top: 1rem;
+}
+
+.space-y-8>*+* {
+    margin-top: 2rem;
+}
+
+/* ==========================================================================
+   3. NAWIGACJA (Navbar)
+   ========================================================================== */
+nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+html.dark nav {
+    background-color: rgba(15, 23, 42, 0.85);
+    border-bottom-color: #1e293b;
+}
+
+.h-16 {
+    height: 4rem;
+}
+
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.text-indigo-600 {
+    color: #4f46e5;
+}
+
+/* Przycisk przełączania motywu */
+nav button,
+.theme-btn {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    padding: 0.4rem 0.85rem;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+
+nav button:hover,
+.theme-btn:hover {
+    background-color: #e2e8f0;
+}
+
+html.dark nav button,
+html.dark .theme-btn {
+    background-color: #1e293b;
+    color: #cbd5e1;
+    border-color: #334155;
+}
+
+html.dark nav button:hover,
+html.dark .theme-btn:hover {
+    background-color: #334155;
+}
+
+/* ==========================================================================
+   4. SIATKI & KARTY (Grid & Cards)
+   ========================================================================== */
+.grid {
+    display: grid;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+.gap-6 {
+    gap: 1.5rem;
+}
+
+/* Kafelki KPI */
+.grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+    .sm\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1024px) {
+    .lg\:grid-cols-12 {
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+    }
+
+    .lg\:col-span-5 {
+        grid-column: span 5 / span 5;
+    }
+
+    .lg\:col-span-6 {
+        grid-column: span 6 / span 6;
+    }
+
+    .lg\:col-span-7 {
+        grid-column: span 7 / span 7;
+    }
+}
+
+/* Uniwersalna karta */
+.bg-white {
+    background-color: #ffffff;
+}
+
+html.dark .dark\:bg-slate-900 {
+    background-color: #0f172a;
+}
+
+.rounded-2xl {
+    border-radius: 1rem;
+}
+
+.border {
+    border-width: 1px;
+    border-style: solid;
+}
+
+.border-slate-200 {
+    border-color: #e2e8f0;
+}
+
+html.dark .dark\:border-slate-800 {
+    border-color: #1e293b;
+}
+
+.shadow-sm {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+.p-5 {
+    padding: 1.25rem;
+}
+
+.p-6 {
+    padding: 1.5rem;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem;
+}
+
+.mb-4 {
+    margin-bottom: 1rem;
+}
+
+.mt-1 {
+    margin-top: 0.25rem;
+}
+
+/* Kontenery Canvas dla Chart.js */
+.relative {
+    position: relative;
+}
+
+.h-64 {
+    height: 16rem;
+}
+
+.h-72 {
+    height: 18rem;
+}
+
+/* ==========================================================================
+   5. TYPOGRAFIA & AKCENTY KOLORYSTYCZNE
+   ========================================================================== */
+.text-xs {
+    font-size: 0.75rem;
+    line-height: 1rem;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.text-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.uppercase {
+    text-transform: uppercase;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.text-slate-500 {
+    color: #64748b;
+}
+
+.text-slate-600 {
+    color: #475569;
+}
+
+html.dark .dark\:text-slate-100 {
+    color: #f1f5f9;
+}
+
+html.dark .dark\:text-slate-300 {
+    color: #cbd5e1;
+}
+
+.text-emerald-600 {
+    color: #059669;
+}
+
+code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    background-color: #f1f5f9;
+    color: #4f46e5;
+    padding: 0.15rem 0.35rem;
+    border-radius: 0.25rem;
+    font-size: 0.8em;
+}
+
+html.dark code {
+    background-color: #1e293b;
+    color: #818cf8;
+}

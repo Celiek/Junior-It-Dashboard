@@ -1,58 +1,194 @@
 <main class="dashboard">
+
     <h1>Junior IT Market Dashboard</h1>
-    <p>Analiza ofert pracy dla juniorów IT w Polsce.</p>
+
+    <p>
+        Analiza ofert pracy dla juniorów IT w Polsce.
+    </p>
+
 
     <!-- 1. Lokalizacje -->
+
     <section class="chart-card">
+
         <h2>{{ locationChartTitle }}</h2>
-        <div class="chart-wrapper">
-            @if (locationChartData.labels && locationChartData.labels.length > 0) {
-            <canvas baseChart [type]="locationChartType" [data]="locationChartData" [options]="locationChartOptions">
-            </canvas>
+
+        <div class="chart-scroll-container">
+
+            @if (isLocationLoading) {
+
+            <div class="chart-loading">
+                Ładowanie ofert według lokalizacji...
+            </div>
+
+            } @else if (
+            locationChartData.labels &&
+            locationChartData.labels.length > 0
+            ) {
+
+            <div class="chart-inner-wrapper" [style.height]="locationChartHeight">
+
+                <canvas baseChart [type]="locationChartType" [data]="locationChartData"
+                    [options]="locationChartOptions">
+                </canvas>
+
+            </div>
+
             } @else {
-            <div class="chart-loading">Ładowanie danych o lokalizacjach...</div>
+
+            <div class="chart-loading">
+                Brak danych o lokalizacjach.
+            </div>
+
             }
+
         </div>
+
     </section>
+
 
     <!-- 2. Technologie -->
+
     <section class="chart-card">
+
         <h2>{{ technologyChartTitle }}</h2>
-        <div class="chart-wrapper technology-chart-wrapper">
-            @if (technologyChartData.labels && technologyChartData.labels.length > 0) {
-            <canvas baseChart [type]="technologyChartType" [data]="technologyChartData"
-                [options]="technologyChartOptions">
-            </canvas>
+
+        <div class="chart-scroll-container">
+
+            @if (isTechnologyLoading) {
+
+            <div class="chart-loading">
+                Ładowanie najpopularniejszych technologii...
+            </div>
+
+            } @else if (
+            technologyChartData.labels &&
+            technologyChartData.labels.length > 0
+            ) {
+
+            <div class="chart-inner-wrapper" [style.height]="technologyChartHeight">
+
+                <canvas baseChart [type]="technologyChartType" [data]="technologyChartData"
+                    [options]="technologyChartOptions">
+                </canvas>
+
+            </div>
+
             } @else {
-            <div class="chart-loading">Ładowanie danych o technologiach...</div>
+
+            <div class="chart-loading">
+                Brak danych o technologiach.
+            </div>
+
             }
+
         </div>
+
     </section>
+
 
     <!-- 3. Wynagrodzenia -->
+
     <section class="chart-card">
+
         <h2>{{ salaryChartTitle }}</h2>
-        <div class="chart-wrapper salary-chart-wrapper">
-            @if (salaryChartData.datasets && salaryChartData.datasets.length > 0) {
+
+        <div class="salary-chart-wrapper">
+
+            @if (isSalaryLoading) {
+
+            <div class="chart-loading">
+                Ładowanie średnich zarobków...
+            </div>
+
+            } @else if (
+            salaryChartData.datasets &&
+            salaryChartData.datasets.length > 0
+            ) {
+
             <canvas baseChart [type]="salaryChartType" [data]="salaryChartData" [options]="salaryChartOptions">
             </canvas>
+
             } @else {
-            <div class="chart-loading">Ładowanie danych o zarobkach...</div>
+
+            <div class="chart-loading">
+                Brak danych o zarobkach.
+            </div>
+
             }
+
         </div>
+
     </section>
 
+
     <!-- 4. Kategorie -->
+
     <section class="chart-card">
-        <h2>{{ offersByCategoryChartTitle }}</h2>
-        <div class="chart-wrapper offers-by-category-chart-wrapper">
-            @if (offersByCategoryChartData.labels && offersByCategoryChartData.labels.length > 0) {
-            <canvas baseChart [type]="offersByCategoryChartType" [data]="offersByCategoryChartData"
-                [options]="offersByCategoryChartOptions">
-            </canvas>
-            } @else {
-            <div class="chart-loading">Ładowanie danych o kategoriach...</div>
+
+        <div class="chart-header">
+
+            <h2>
+                {{ offersByCategoryChartTitle }}
+            </h2>
+
+            @if (
+            !isCategoryLoading &&
+            allCategoriesRaw.length > 0
+            ) {
+
+            <div class="slider-control">
+
+                <label for="catLimit">
+
+                    Pokaż top:
+                    <strong>
+                        {{ categoryLimit }}
+                    </strong>
+
+                </label>
+
+                <input id="catLimit" type="range" min="5" [max]="maxCategoryLimit" step="5" [value]="categoryLimit"
+                    (input)="onCategoryLimitChange($event)" />
+
+            </div>
+
             }
+
         </div>
+
+
+        <div class="chart-scroll-container">
+
+            @if (isCategoryLoading) {
+
+            <div class="chart-loading">
+                Ładowanie danych o kategoriach...
+            </div>
+
+            } @else if (
+            offersByCategoryChartData.labels &&
+            offersByCategoryChartData.labels.length > 0
+            ) {
+
+            <div class="chart-inner-wrapper" [style.height]="offersByCategoryChartHeight">
+
+                <canvas baseChart [type]="offersByCategoryChartType" [data]="offersByCategoryChartData"
+                    [options]="offersByCategoryChartOptions">
+                </canvas>
+
+            </div>
+
+            } @else {
+
+            <div class="chart-loading">
+                Brak danych o kategoriach ofert.
+            </div>
+
+            }
+
+        </div>
+
     </section>
+
 </main>

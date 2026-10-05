@@ -35,6 +35,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                   WHEN LOWER(o.location) LIKE '% piaseczno%' THEN 'Piaseczno'
                   WHEN LOWER(o.location) LIKE '%kraków%' THEN 'Kraków'
                   WHEN LOWER(o.location) LIKE '%krakowski%' THEN 'Kraków'
+                  WHEN LOWER(o.location) LIKE '%krakow%' THEN 'Kraków'
                   WHEN LOWER(o.location) LIKE '%wrocław%' THEN 'Wrocław'
                   WHEN LOWER(o.location) LIKE '%poznań%' THEN 'Poznań'
                   WHEN LOWER(o.location) LIKE '%gdańsk%' THEN 'Gdańsk'
@@ -71,6 +72,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                   WHEN LOWER(o.location) LIKE '%skierniewice%' THEN 'Skierniewice'
                   WHEN LOWER(o.location) LIKE '%częstochowa%' THEN 'Częstochowa'
                   WHEN LOWER(o.location) LIKE '%remote%' OR LOWER(o.location) LIKE '%zdalna%' THEN 'Zdalna'
+                  WHEN LOWER(o.location) LIKE '%Nie podano%' OR LOWER(o.location) LIKE '%zdalna%' THEN 'Zdalna'
                   ELSE TRIM(o.location)
               END,
               COUNT(DISTINCT FUNCTION('split_part', o.offer_url, '?', 1))
@@ -89,6 +91,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                   WHEN LOWER(o.location) LIKE '% piaseczno%' THEN 'Piaseczno'
                   WHEN LOWER(o.location) LIKE '%kraków%' THEN 'Kraków'
                   WHEN LOWER(o.location) LIKE '%krakowski%' THEN 'Kraków'
+                  WHEN LOWER(o.location) LIKE '%krakow%' THEN 'Kraków'
                   WHEN LOWER(o.location) LIKE '%wrocław%' THEN 'Wrocław'
                   WHEN LOWER(o.location) LIKE '%poznań%' THEN 'Poznań'
                   WHEN LOWER(o.location) LIKE '%gdańsk%' THEN 'Gdańsk'
@@ -125,6 +128,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                   WHEN LOWER(o.location) LIKE '%skierniewice%' THEN 'Skierniewice'
                   WHEN LOWER(o.location) LIKE '%częstochowa%' THEN 'Częstochowa'
                   WHEN LOWER(o.location) LIKE '%remote%' OR LOWER(o.location) LIKE '%zdalna%' THEN 'Zdalna'
+                  WHEN LOWER(o.location) LIKE '%Nie podano%' OR LOWER(o.location) LIKE '%zdalna%' THEN 'Zdalna'
                   ELSE TRIM(o.location)
               END
           ORDER BY COUNT(DISTINCT FUNCTION('split_part', o.offer_url, '?', 1)) DESC
