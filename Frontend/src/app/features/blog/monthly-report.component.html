@@ -1,0 +1,117 @@
+<div class="report-page bg-slate-950 text-slate-100 min-h-screen">
+
+    <!-- Pasek nawigacyjny spójny z dashboardem -->
+    <nav class="report-navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a routerLink="/" class="nav-logo">
+                    Junior IT <span class="text-indigo-500">Analytics</span>
+                </a>
+                <div class="nav-links">
+                    <a routerLink="/" class="nav-link">Dashboard</a>
+                    <a routerLink="/about" class="nav-link">O projekcie</a>
+                    <span class="nav-link active">Raporty</span>
+                </div>
+            </div>
+            <button (click)="themeService.toggleTheme()" class="nav-theme-btn">
+                Przełącz tryb ciemny/jasny
+            </button>
+        </div>
+    </nav>
+
+    <!-- Zawartość raportu -->
+    <main class="report-content" *ngIf="report">
+
+        <!-- Hero / Nagłówek -->
+        <header class="report-header">
+            <div class="report-tag">
+                <span class="tag-badge">#a5b4fc</span>
+                <span class="tag-title">RAPORT RYNKOWY • {{ report.period }}</span>
+            </div>
+            <h1 class="report-title">
+                Rynek Pracy Junior IT w Polsce: Analiza Miesiąca
+            </h1>
+            <p class="report-subtitle">
+                Opracowanie na podstawie {{ report.totalOffers | number }} zindeksowanych ogłoszeń z portali Pracuj.pl
+                oraz theProtocol.it.
+            </p>
+        </header>
+
+        <!-- DODANY DIV: Analiza wyników za dany miesiąc (nad pierwszym wykresem) -->
+        <section class="card-box">
+            <h2 class="card-title">Analiza wyników za dany miesiąc</h2>
+            <p class="card-description leading-relaxed">
+                Analiza wyników za dany miesiąc ze zindeksowanych ogłoszeń w kategorii Junior IT. Wymagania pracodawców
+                koncentrują się wokół praktycznych umiejętności operowania na relacyjnych bazach danych. W kwestii
+                wynagrodzeń kontrakty B2B nadal oferują najwyższe stawki jednostkowe, aczkolwiek jawność widełek
+                pozostaje wyzwaniem rynkowym. Poniższe zestawienia ilustrują szczegółowy rozkład wymogów, stawek oraz
+                aktywności firm w badanym okresie.
+            </p>
+        </section>
+
+        <!-- 1. Wykres: Technologie -->
+        <section class="card-box">
+            <h2 class="card-title">1. Najpopularniejsze Technologie w Ofertach (Wymagania)</h2>
+            <p class="card-description">
+                Liczba wystąpień technologii w tablicy wymagań technicznych podanych w ogłoszeniach.
+            </p>
+            <div class="chart-wrapper">
+                <canvas baseChart [data]="techChartData" [options]="techChartOptions" [type]="'bar'">
+                </canvas>
+            </div>
+        </section>
+
+        <!-- 2. Wykres: Wynagrodzenia wg formy zatrudnienia -->
+        <section class="card-box">
+            <h2 class="card-title">2. Wynagrodzenia Miesięczne wg Formy Zatrudnienia</h2>
+
+            <!-- Wariant z danymi o stawkach -->
+            <div *ngIf="report.salaryDataAvailable; else noSalaryTpl" class="salary-grid">
+                <div class="chart-wrapper">
+                    <canvas baseChart [data]="salaryChartData" [options]="salaryChartOptions" [type]="'bar'">
+                    </canvas>
+                </div>
+
+                <!-- Boczny kafelek statusu jawności -->
+                <div class="status-box">
+                    <div class="status-header">
+                        <span class="status-icon">⚠️</span>
+                        <span class="status-title">Status jawności stawek</span>
+                    </div>
+                    <p class="status-text">
+                        Jeśli pracodawcy omijają podawanie widełek, wartości bazują wyłącznie na próbie z jawną stawką.
+                        W przypadku całkowitego braku ofert z jawną płacą wykres zastępowany jest komunikatem
+                        systemowym.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Fallback gdy pracodawcy nie podali zarobków -->
+            <ng-template #noSalaryTpl>
+                <div class="no-salary-alert">
+                    <span class="alert-icon">ℹ️</span>
+                    <div>
+                        <h3 class="alert-heading">Brak jawnych danych o zarobkach</h3>
+                        <p class="alert-text">
+                            W danym miesiącu żaden pracodawca nie poinformował o proponowanych zarobkach w
+                            zindeksowanych ofertach dla tego profilu.
+                        </p>
+                    </div>
+                </div>
+            </ng-template>
+        </section>
+
+        <!-- 3. Wykres: Najbardziej aktywni pracodawcy -->
+        <section class="card-box">
+            <h2 class="card-title">3. Najbardziej Aktywni Pracodawcy</h2>
+            <p class="card-description">
+                Liczba ofert opublikowanych przez poszczególne przedsiębiorstwa w ujęciu miesięcznym.
+            </p>
+            <div class="chart-wrapper horizontal-wrapper">
+                <canvas baseChart [data]="employerChartData" [options]="employerChartOptions" [type]="'bar'">
+                </canvas>
+            </div>
+        </section>
+
+    </main>
+</div>

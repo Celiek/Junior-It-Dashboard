@@ -1,0 +1,114 @@
+<div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+    <!-- Nawigacja spójna z resztą aplikacji -->
+    <nav
+        class="border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur sticky top-0 z-20">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <a routerLink="/"
+                    class="font-bold text-lg text-slate-800 dark:text-slate-100 hover:opacity-80 transition-opacity">
+                    Junior IT <span class="text-indigo-600">Analytics</span>
+                </a>
+                <div class="flex items-center gap-4 text-sm font-medium">
+                    <a routerLink="/"
+                        class="text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 transition-colors">
+                        Dashboard
+                    </a>
+                    <a routerLink="/about" class="text-indigo-600 dark:text-indigo-400 font-semibold">
+                        O projekcie
+                    </a>
+                </div>
+            </div>
+
+            <button (click)="themeService.toggleTheme()"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                Przełącz tryb ciemny/jasny
+            </button>
+        </div>
+    </nav>
+
+    <!-- Główna zawartość -->
+    <main class="max-w-6xl mx-auto px-4 py-8 pb-24 flex flex-col gap-6">
+        <!-- Hero / Nagłówek -->
+        <div
+            class="w-full bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-slate-100 mb-3">
+                O projekcie Junior IT Analytics
+            </h1>
+            <p class="text-sm sm:text-base text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
+                Aplikacja monitoruje i analizuje rynek ogłoszeń pracy dla początkujących programistów i specjalistów IT
+                w Polsce. Jej celem jest dostarczanie przejrzystych danych dotyczących szybko zmieniających się realiów rynkowych: stawek,
+                najczęściej wymaganych umiejętności, rozłożenia ofert w dużych aglomeracjach oraz pokazania którzy pracodawcy najczęściej zatrudniają.
+                Nad projektem pracuje jeden programista w ramach nauki, jeśli zauważysz jakieś błędy / sugestie napisz do mnie na discordze : <a href="890165622741299200" target="_blank" class="text-indigo-600 dark:text-indigo-400 hover:underline">Junior IT Analytics</a>
+            </p>
+        </div>
+
+        <!-- Siatka: Architektura i Stack Technologiczny -->
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Karta: Jak zbierane są dane -->
+            <div
+                class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
+                        Zbieranie i Przetwarzanie Danych
+                    </h2>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                        Dane są automatycznie gromadzone przez dedykowany web scraper, a następnie trafiają do
+                        relacyjnej bazy danych. Przed prezentacją na wykresach przechodzą proces normalizacji typów
+                        umów, widełek płacowych oraz tagów technologii wymaganych w ofertach.
+                    </p>
+                    <ul class="text-xs text-slate-500 dark:text-slate-400 space-y-2">
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                            Cykliczna ekstrakcja ogłoszeń z czołowych portali pracy
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                            Czyszczenie anomalii i standaryzacja stawek do kwot miesięcznych
+                        </li>
+                        <li class="flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                            Grupowanie mniejszych miejscowości w zbiorcze segmenty
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Karta: Stack technologiczny -->
+            <div
+                class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">
+                        Użyte Technologie
+                    </h2>
+                    <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                        Warstwa frontendowa została zbudowana w oparciu o :
+                    </p>
+                    <div class="flex flex-wrap gap-3">
+                        <span
+                            class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800">Angular
+                            (Standalone)</span>
+                        <span
+                            class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800">TypeScript</span>
+                        <span
+                            class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800">Chart.js
+                            & ng2-charts</span>
+                        <span
+                            class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">Tailwind
+                            CSS</span>
+                        <span
+                            class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">REST
+                            API - Java Spring, baza danych PostgreSQL</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stopka informacyjna -->
+        <div
+            class="w-full bg-slate-100/60 dark:bg-slate-900/60 p-6 rounded-2xl border border-dashed border-slate-300 dark:border-slate-800 text-center">
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+                Junior IT Analytics • Projekt demonstracyjny do śledzenia trendów na polskim rynku IT.
+            </p>
+        </div>
+    </main>
+</div>

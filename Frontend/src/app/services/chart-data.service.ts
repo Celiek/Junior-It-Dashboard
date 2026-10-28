@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { OffersOverviewDto } from '../models/chart-data';
 
 export interface JobTechnologyStats {
   technology: string;
@@ -29,8 +30,8 @@ export interface OffersByCategory {
 })
 export class ChartDataService {
 
-  private readonly apiUrl = 'https://charts-backend-446117273077.europe-west1.run.app/api/offers';
-  //private readonly apiUrl = 'http://localhost:8080/api/offers';
+  //private readonly apiUrl = 'https://charts-backend-446117273077.europe-west1.run.app/api/offers';
+  private readonly apiUrl = 'http://localhost:8080/api/offers';
 
   constructor(private http: HttpClient) {}
 
@@ -46,14 +47,16 @@ export class ChartDataService {
     );
   }
 
-getAverageSalaryByContractType(): Observable<AverageSalaryByContractStats[]> {
-  return this.http.get<AverageSalaryByContractStats[]>(
-    `${this.apiUrl}/averageSalaryByMonth`
-    );
-  }
-getOffersByCategory(): Observable<OffersByCategory[]> {
-  return this.http.get<OffersByCategory[]>(
-    `${this.apiUrl}/countOffersByCategory`
-    );
-  }
+  getAverageSalaryByContractType(): Observable<AverageSalaryByContractStats[]> {
+    return this.http.get<AverageSalaryByContractStats[]>(
+      `${this.apiUrl}/averageSalaryByMonth`
+      );
+    }
+  getOffersByCategory(): Observable<OffersByCategory[]> {
+    return this.http.get<OffersByCategory[]>(
+      `${this.apiUrl}/countOffersByCategory`
+      );
+    }
+
+
 }

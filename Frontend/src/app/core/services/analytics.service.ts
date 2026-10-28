@@ -5,7 +5,9 @@ import {
   LocationOfferDto,
   SalaryOfferDto,
   TechnologyDto,
-  CategoryDto
+  CategoryDto,
+  OffersOverviewDto,
+  CompanyOffersDTO
 } from '../models/market-api.models';
 
 export interface DashboardApiResponse {
@@ -47,4 +49,13 @@ export class AnalyticsService {
       categories: this.getCategories()
     });
   }
+
+  getOverview() : Observable<OffersOverviewDto> {
+    return this.http.get<OffersOverviewDto>(`${this.baseUrl}/overview`);
+  }
+
+  getCompanyOffers() : Observable<CompanyOffersDTO[]> {
+    return this.http.get<CompanyOffersDTO[]>(`${this.baseUrl}/countCompanyOffers`);
+  }
+  
 }

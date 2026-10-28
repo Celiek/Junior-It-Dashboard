@@ -2,6 +2,7 @@ package com.junior.charts.repo;
 
 import com.junior.charts.dto.*;
 import com.junior.charts.entity.Offers;
+import com.junior.charts.projection.CompanyLocationProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -211,7 +212,6 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
             """)
     List<OfferWithContractDTO> findOffersWithContract();
 
-    //z jakiegoś powodu nie wyświetla umów b2b po kwietniu
     @Query(value = """
              WITH deduplicated_offers AS (
                       SELECT DISTINCT ON (split_part(jo.offer_url, '?', 1))
@@ -256,6 +256,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
            """,nativeQuery = true)
     List<AverageSalaryByMonthAndContractProjection> getAverageSalaryByMonth();
 
+    //do poprawy, specjalizacja jest zapisywana w bazie danych
     @Query(value = """
     WITH deduplicated_offers AS (
         SELECT DISTINCT ON (split_part(jo.offer_url, '?', 1))
@@ -313,6 +314,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                   OR searchable_text LIKE '%etl%'
                   OR searchable_text LIKE '%spark%'
                   OR searchable_text LIKE '%pandas%'
+                  OR searchable_text LIKE '%junior data engineer%'
                 THEN 'Data / BI / Analytics'
 
                 WHEN searchable_text LIKE '%devops%'
@@ -372,6 +374,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                 THEN 'QA / Testing'
 
                 WHEN searchable_text LIKE '%support%'
+                  OR searchable_text LIKE '%it support%'
                   OR searchable_text LIKE '%helpdesk%'
                   OR searchable_text LIKE '%help desk%'
                   OR searchable_text LIKE '%service desk%'
@@ -383,6 +386,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                   OR searchable_text LIKE '%2nd line%'
                   OR searchable_text LIKE '%first line%'
                   OR searchable_text LIKE '%second line%'
+                  OR searchable_text LIKE '%it support specialist%'
                 THEN 'Support / Helpdesk'
 
                 WHEN searchable_text LIKE '%business analyst%'
@@ -494,6 +498,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                   OR searchable_text LIKE '%unity%'
                   OR searchable_text LIKE '%unreal%'
                   OR searchable_text LIKE '%technical artist%'
+                  OR searchable_text LIKE '%game playtester%'
                 THEN 'Game Dev'
 
                 WHEN searchable_text LIKE '%it recruiter%'
@@ -514,6 +519,7 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                   OR searchable_text LIKE '%informatyk%'
                   OR searchable_text LIKE '%młodszy specjalista it%'
                   OR searchable_text LIKE '%junior it specialist%'
+                  OR searchable_text LIKE '%.net%'
                 THEN 'IT Specialist / General IT'
 
                 ELSE 'Other / Niepewne'
@@ -528,4 +534,44 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
     ORDER BY count DESC
     """, nativeQuery = true)
     List<OffersByCategoryProjection> countOffersByCategory();
+
+    //pokazuje ile ofert wystawiłą dana firma w ogóle
+    @Query(value= """
+            SELECT new com.junior.charts.dto.CompanyOffersDTO(
+               j.company,
+               COUNT(j) )
+           FROM Offers j
+           WHERE j.company IS NOT NULL
+             AND j.company <> ''
+           GROUP BY j.company
+           HAVING COUNT(j) > 5
+           ORDER BY COUNT(j) DESC
+           """
+            )
+    List<CompanyOffersDTO> countCompanyOffers();
+
+    @Query(value = "Select Count(*) from job_offers", nativeQuery = true)
+    Long countOffers();
+
+    // zwraca liczbę źródeł z których pobierane są oferty
+    // narazie 2 pracuj.pl i justjoin.it
+    @Query(value="Select Count(Distinct Source) as liczba_zrodel from job_offers ", nativeQuery = true)
+    Long amountOfsources();
+
+    //zwraca listę żródeł wraz z liczbą ofert dla danego źródła
+    @Query(value ="Select source AS zrodlo, Count(*) as offerAmount from job_offers group by source Order BY offerAmount", nativeQuery = true)
+    List<SourcesListsDTO> listOfSources();
+
+    @Query(value = """
+            SELECT
+               company AS "nazwaFirmy",
+               location AS "miejsce",
+               COUNT(*) AS "liczbaOfert"
+           FROM job_offers
+           WHERE company IS NOT NULL AND company <> ''
+           GROUP BY company, location
+           HAVING COUNT(*) > 5
+           ORDER BY company ASC, COUNT(*) DESC
+            """,nativeQuery = true)
+    List<CompanyLocationProjection> findOffersByCompanyAndLocation();
 }

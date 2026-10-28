@@ -19,3 +19,19 @@ export interface CategoryDto {
   category: string;
   count: number;
 }
+
+export interface SourceStatDto {
+  source: string;
+  offersAmount: number;
+}
+
+export interface OffersOverviewDto {
+  totalOffers: number;
+  totalSources: number;
+  sources: SourceStatDto[];
+}
+
+export interface CompanyOffersDTO{
+  company: string;
+  amount: number;
+}

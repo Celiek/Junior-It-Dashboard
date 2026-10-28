@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/offers")
@@ -54,4 +55,18 @@ public class OffersController {
         return ResponseEntity.ok(service.countOffersByCategory());
     }
 
+    @GetMapping("/countCompanyOffers")
+    public ResponseEntity<List<CompanyOffersDTO>> countCompanyOffers(){
+        return ResponseEntity.ok(service.countCompanyOffers());
+    }
+
+    @GetMapping("/overview")
+    public OfferOverwievDTO getOfferOverwiev(){
+        return service.getOfferOverview();
+    }
+
+    @GetMapping("/offersAmountByCompanyAndLocation")
+    public Map<String, Map<String, Long>> getOffersByCompanyAndLocation(){
+        return service.getOffersByCompanyAndLocation();
+    }
 }

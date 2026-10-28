@@ -16,7 +16,7 @@ export interface SalaryByContract {
 }
 
 export interface CategoryStat {
-  category: string; // np. 'Backend', 'Frontend', 'Fullstack'
+  category: string;
   count: number;
 }
 

@@ -2,6 +2,7 @@ package com.junior.charts.service;
 
 import com.junior.charts.dto.*;
 import com.junior.charts.entity.Offers;
+import com.junior.charts.projection.CompanyLocationProjection;
 import com.junior.charts.repo.OffersRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,7 +10,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -77,4 +80,34 @@ public class OfferService {
         return repo.countOffersByCategory();
     }
 
+    public List<CompanyOffersDTO> countCompanyOffers(){
+        return repo.countCompanyOffers();
+    }
+
+    public OfferOverwievDTO getOfferOverview() {
+        Long totalOffers = repo.countOffers();
+        Long amountOfSources = repo.amountOfsources();
+        List<SourcesListsDTO> listOfSources = repo.listOfSources();
+
+        return new OfferOverwievDTO(
+                totalOffers,amountOfSources,listOfSources
+        );
+    }
+
+    public Map<String, Map<String,Long>> getOffersByCompanyAndLocation(){
+        List<CompanyLocationProjection> results =
+                repo.findOffersByCompanyAndLocation();
+
+        Map<String, Map<String, Long>> response = new LinkedHashMap<>();
+
+        for(CompanyLocationProjection row : results){
+            response
+                    .computeIfAbsent(
+                            row.getNazwaFirmy(),
+                            key -> new LinkedHashMap<>()
+                    )
+                    .put(row.getMiejsce(), row.getLiczbaOfert());
+        }
+        return response;
+    }
 }

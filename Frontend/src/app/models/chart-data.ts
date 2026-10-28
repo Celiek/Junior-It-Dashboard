@@ -9,3 +9,14 @@ export interface ChartDataResponse {
   yAxisLabel: string;
   data: ChartPoint[];
 }
+
+export interface SourceStatDto{
+  source : string;
+  offersAmount: number;
+}
+
+export interface OffersOverviewDto{
+  totalOffers: number;
+  totalSources: number;
+  sources : SourceStatDto[];
+}
