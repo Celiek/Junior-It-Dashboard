@@ -1,6 +1,7 @@
 package com.junior.charts.service;
 
 import com.junior.charts.dto.*;
+import com.junior.charts.dto.offer.JobSummaryDTO;
 import com.junior.charts.entity.Offers;
 import com.junior.charts.projection.CompanyLocationProjection;
 import com.junior.charts.repo.OffersRepo;
@@ -109,5 +110,25 @@ public class OfferService {
                     .put(row.getMiejsce(), row.getLiczbaOfert());
         }
         return response;
+    }
+
+    //TODO:
+    // dodać sprawdzanie inputów dla poniższych metod
+    //
+    public List<JobSummaryDTO> companyLatestJobAdvertisement(String companyName){
+        return repo.companyLatestJobAdvertisements(companyName);
+    }
+
+    public Long amountOfJobAdvertisementsThisYear(String companyName, int year){
+        return repo.amountOfJobAdvertisementsThisYear(companyName,year);
+    }
+
+    public List<Object[]> amountOfJobAdvertisementSources(String companyName,
+                                                                        int year){
+        return repo.amountOfJobAdvertisementSources(companyName,year);
+    }
+
+    public List<Object[]> countJobOffersByCategoryAndCompany(String companyName){
+        return repo.countJobOffersByCategoryAndCompany(companyName);
     }
 }

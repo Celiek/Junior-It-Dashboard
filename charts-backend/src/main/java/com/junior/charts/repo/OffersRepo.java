@@ -1,6 +1,7 @@
 package com.junior.charts.repo;
 
 import com.junior.charts.dto.*;
+import com.junior.charts.dto.offer.JobSummaryDTO;
 import com.junior.charts.entity.Offers;
 import com.junior.charts.projection.CompanyLocationProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -161,32 +162,16 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
     List<Offers> findOffersFromMonthBeforeDate(@Param("date") Date date);
 
     @Query(value = """
-            WITH deduplicated_offers AS (
-           SELECT DISTINCT ON (split_part(jo.offer_url, '?', 1))
-               jo.id,
-               jo.offer_url,
-               jo.technologies
-           FROM job_offers jo
-           WHERE jo.offer_url IS NOT NULL
-             AND TRIM(jo.offer_url) <> ''
-             AND jo.technologies IS NOT NULL
-           ORDER BY split_part(jo.offer_url, '?', 1), jo.scraped_at DESC
-       ),
-       offer_technologies AS (
-           SELECT DISTINCT
-               split_part(offer_url, '?', 1) AS clean_offer_url,
-               LOWER(TRIM(t)) AS technology
-           FROM deduplicated_offers
-           CROSS JOIN unnest(technologies) AS t
-           WHERE t IS NOT NULL
-             AND TRIM(t) <> ''
-       )
-       SELECT
-           technology,
-           COUNT(*) AS count
-       FROM offer_technologies
-       GROUP BY technology
-       ORDER BY count DESC;
+            SELECT
+                LOWER(TRIM(t)) AS technology,
+                COUNT(*) AS count
+            FROM job_offers
+            CROSS JOIN unnest(technologies) AS t
+            WHERE technologies IS NOT NULL
+              AND t IS NOT NULL
+              AND TRIM(t) <> ''
+            GROUP BY LOWER(TRIM(t))
+            ORDER BY count DESC;
             """,nativeQuery = true)
     List<PopularTechnologyProjection> findMostPopularTechnologies();
 
@@ -213,325 +198,60 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
     List<OfferWithContractDTO> findOffersWithContract();
 
     @Query(value = """
-             WITH deduplicated_offers AS (
-                      SELECT DISTINCT ON (split_part(jo.offer_url, '?', 1))
-                          jo.id,
-                          split_part(jo.offer_url, '?', 1) AS clean_offer_url,
-                          jo.scraped_at
-                      FROM job_offers jo
-                      WHERE jo.offer_url IS NOT NULL
-                        AND TRIM(jo.offer_url) <> ''
-                      ORDER BY split_part(jo.offer_url, '?', 1), jo.scraped_at DESC
-                  ),
-                  salary_per_offer_and_contract AS (
-                      SELECT
-                          jo.clean_offer_url,
-                          jo.scraped_at,
-                          joc.contract_type,
-                          AVG((joc.salary_min + joc.salary_max) / 2.0) AS offer_avg_salary
-                      FROM deduplicated_offers jo
-                      JOIN job_offer_contracts joc
-                        ON jo.id = joc.job_offer_id
-                      WHERE joc.salary_min IS NOT NULL
-                        AND joc.salary_max IS NOT NULL
-                        AND joc.contract_type IS NOT NULL
-                        AND TRIM(joc.contract_type) <> ''
-                      GROUP BY
-                          jo.clean_offer_url,
-                          jo.scraped_at,
-                          joc.contract_type
-                  )
-                  SELECT
-                      DATE_TRUNC('month', scraped_at) AS month,
-                      contract_type AS contractType,
-                      AVG(offer_avg_salary) AS averageSalary,
-                      COUNT(*) AS offersCount
-                  FROM salary_per_offer_and_contract
-                  GROUP BY
-                      DATE_TRUNC('month', scraped_at),
-                      contract_type
-                  ORDER BY
-                      month DESC,
-                      contract_type ASC
+            WITH salary_per_offer_and_contract AS (
+             SELECT
+                 jo.id AS offer_id,
+                 jo.scraped_at,
+                 joc.contract_type,
+
+                 AVG(
+                     (joc.salary_min + joc.salary_max) / 2.0
+                 ) AS offer_avg_salary
+
+             FROM job_offers jo
+
+             INNER JOIN job_offer_contracts joc
+                 ON joc.job_offer_id = jo.id
+
+             WHERE joc.salary_min IS NOT NULL
+               AND joc.salary_max IS NOT NULL
+               AND joc.contract_type IS NOT NULL
+               AND TRIM(joc.contract_type) <> ''
+
+             GROUP BY
+                 jo.id,
+                 jo.scraped_at,
+                 joc.contract_type
+         )
+
+         SELECT
+             DATE_TRUNC('month', scraped_at) AS month,
+
+             contract_type AS "contractType",
+
+             AVG(offer_avg_salary) AS "averageSalary",
+
+             COUNT(*) AS "offersCount"
+
+         FROM salary_per_offer_and_contract
+
+         GROUP BY
+             DATE_TRUNC('month', scraped_at),
+             contract_type
+
+         ORDER BY
+             month DESC,
+             contract_type ASC;
            """,nativeQuery = true)
     List<AverageSalaryByMonthAndContractProjection> getAverageSalaryByMonth();
 
     //do poprawy, specjalizacja jest zapisywana w bazie danych
     @Query(value = """
-    WITH deduplicated_offers AS (
-        SELECT DISTINCT ON (split_part(jo.offer_url, '?', 1))
-            jo.id,
-            split_part(jo.offer_url, '?', 1) AS clean_offer_url,
-            jo.title,
-            jo.description,
-            jo.requirements,
-            jo.technologies,
-            jo.scraped_at
-        FROM job_offers jo
-        WHERE jo.offer_url IS NOT NULL
-          AND TRIM(jo.offer_url) <> ''
-        ORDER BY split_part(jo.offer_url, '?', 1), jo.scraped_at DESC
-    ),
-    prepared_offers AS (
-        SELECT
-            clean_offer_url,
-            LOWER(
-                COALESCE(title, '') || ' ' ||
-                COALESCE(description, '') || ' ' ||
-                COALESCE(requirements, '') || ' ' ||
-                COALESCE(array_to_string(technologies, ' '), '')
-            ) AS searchable_text
-        FROM deduplicated_offers
-    ),
-    categorized_offers AS (
-        SELECT
-            CASE
-                WHEN searchable_text LIKE '%fullstack%'
-                  OR searchable_text LIKE '%full stack%'
-                  OR searchable_text LIKE '%full-stack%'
-                THEN 'Fullstack'
-
-                WHEN searchable_text LIKE '%machine learning%'
-                  OR searchable_text LIKE '% ml engineer%'
-                  OR searchable_text LIKE '% ai developer%'
-                  OR searchable_text LIKE '% ai engineer%'
-                  OR searchable_text LIKE '%artificial intelligence%'
-                  OR searchable_text LIKE '%computer vision%'
-                  OR searchable_text LIKE '%deep learning%'
-                  OR searchable_text LIKE '%nlp%'
-                  OR searchable_text LIKE '%mlops%'
-                THEN 'AI / ML'
-
-                WHEN searchable_text LIKE '%data analyst%'
-                  OR searchable_text LIKE '%data analysis%'
-                  OR searchable_text LIKE '%business intelligence%'
-                  OR searchable_text LIKE '% bi developer%'
-                  OR searchable_text LIKE '%power bi%'
-                  OR searchable_text LIKE '%tableau%'
-                  OR searchable_text LIKE '%data engineer%'
-                  OR searchable_text LIKE '%data scientist%'
-                  OR searchable_text LIKE '%data specialist%'
-                  OR searchable_text LIKE '%etl%'
-                  OR searchable_text LIKE '%spark%'
-                  OR searchable_text LIKE '%pandas%'
-                  OR searchable_text LIKE '%junior data engineer%'
-                THEN 'Data / BI / Analytics'
-
-                WHEN searchable_text LIKE '%devops%'
-                  OR searchable_text LIKE '%sre%'
-                  OR searchable_text LIKE '%site reliability%'
-                  OR searchable_text LIKE '%cloud engineer%'
-                  OR searchable_text LIKE '%cloud developer%'
-                  OR searchable_text LIKE '%platform engineer%'
-                  OR searchable_text LIKE '%kubernetes%'
-                  OR searchable_text LIKE '%docker%'
-                  OR searchable_text LIKE '%terraform%'
-                  OR searchable_text LIKE '%aws%'
-                  OR searchable_text LIKE '%azure%'
-                  OR searchable_text LIKE '%gcp%'
-                  OR searchable_text LIKE '%ci/cd%'
-                THEN 'DevOps / Cloud / SRE'
-
-                WHEN searchable_text LIKE '%frontend%'
-                  OR searchable_text LIKE '%front-end%'
-                  OR searchable_text LIKE '%front end%'
-                  OR searchable_text LIKE '%react developer%'
-                  OR searchable_text LIKE '%angular developer%'
-                  OR searchable_text LIKE '%vue developer%'
-                  OR searchable_text LIKE '%javascript developer%'
-                  OR searchable_text LIKE '%typescript developer%'
-                  OR searchable_text LIKE '%html%'
-                  OR searchable_text LIKE '%css%'
-                THEN 'Frontend'
-
-                WHEN searchable_text LIKE '%backend%'
-                  OR searchable_text LIKE '%back-end%'
-                  OR searchable_text LIKE '%back end%'
-                  OR searchable_text LIKE '%java developer%'
-                  OR searchable_text LIKE '%spring developer%'
-                  OR searchable_text LIKE '%spring boot%'
-                  OR searchable_text LIKE '%.net developer%'
-                  OR searchable_text LIKE '%c# developer%'
-                  OR searchable_text LIKE '%python developer%'
-                  OR searchable_text LIKE '%php developer%'
-                  OR searchable_text LIKE '%node.js%'
-                  OR searchable_text LIKE '%nodejs%'
-                  OR searchable_text LIKE '%golang%'
-                  OR searchable_text LIKE '%go developer%'
-                  OR searchable_text LIKE '%hibernate%'
-                THEN 'Backend'
-
-                WHEN searchable_text LIKE '%qa%'
-                  OR searchable_text LIKE '%tester%'
-                  OR searchable_text LIKE '%testing%'
-                  OR searchable_text LIKE '%test engineer%'
-                  OR searchable_text LIKE '%test automation%'
-                  OR searchable_text LIKE '%automation tester%'
-                  OR searchable_text LIKE '%manual tester%'
-                  OR searchable_text LIKE '%selenium%'
-                  OR searchable_text LIKE '%cypress%'
-                  OR searchable_text LIKE '%playwright%'
-                THEN 'QA / Testing'
-
-                WHEN searchable_text LIKE '%support%'
-                  OR searchable_text LIKE '%it support%'
-                  OR searchable_text LIKE '%helpdesk%'
-                  OR searchable_text LIKE '%help desk%'
-                  OR searchable_text LIKE '%service desk%'
-                  OR searchable_text LIKE '%technical support%'
-                  OR searchable_text LIKE '%it support%'
-                  OR searchable_text LIKE '%customer support%'
-                  OR searchable_text LIKE '%application support%'
-                  OR searchable_text LIKE '%1st line%'
-                  OR searchable_text LIKE '%2nd line%'
-                  OR searchable_text LIKE '%first line%'
-                  OR searchable_text LIKE '%second line%'
-                  OR searchable_text LIKE '%it support specialist%'
-                THEN 'Support / Helpdesk'
-
-                WHEN searchable_text LIKE '%business analyst%'
-                  OR searchable_text LIKE '%system analyst%'
-                  OR searchable_text LIKE '%systems analyst%'
-                  OR searchable_text LIKE '%analityk biznesowy%'
-                  OR searchable_text LIKE '%analityk systemowy%'
-                  OR searchable_text LIKE '%it analyst%'
-                  OR searchable_text LIKE '%functional analyst%'
-                THEN 'Business / System Analyst'
-
-                WHEN searchable_text LIKE '%administrator%'
-                  OR searchable_text LIKE '%administator%'
-                  OR searchable_text LIKE '%sysadmin%'
-                  OR searchable_text LIKE '%system administrator%'
-                  OR searchable_text LIKE '%linux administrator%'
-                  OR searchable_text LIKE '%windows administrator%'
-                  OR searchable_text LIKE '%network administrator%'
-                  OR searchable_text LIKE '%network engineer%'
-                  OR searchable_text LIKE '%infrastructure%'
-                  OR searchable_text LIKE '%active directory%'
-                  OR searchable_text LIKE '%microsoft 365%'
-                  OR searchable_text LIKE '%office 365%'
-                THEN 'Admin / Infrastructure'
-
-                WHEN searchable_text LIKE '%sap%'
-                  OR searchable_text LIKE '%erp%'
-                  OR searchable_text LIKE '%crm%'
-                  OR searchable_text LIKE '%salesforce%'
-                  OR searchable_text LIKE '%dynamics%'
-                  OR searchable_text LIKE '%servicenow%'
-                  OR searchable_text LIKE '%consultant sap%'
-                  OR searchable_text LIKE '%konsultant sap%'
-                THEN 'ERP / SAP / CRM'
-
-                WHEN searchable_text LIKE '%implementation%'
-                  OR searchable_text LIKE '%wdrożeń%'
-                  OR searchable_text LIKE '%wdrożeniowy%'
-                  OR searchable_text LIKE '%konsultant%'
-                  OR searchable_text LIKE '%consultant%'
-                  OR searchable_text LIKE '%application consultant%'
-                  OR searchable_text LIKE '%technical consultant%'
-                THEN 'Implementation / Consultant'
-
-                WHEN searchable_text LIKE '%security%'
-                  OR searchable_text LIKE '%cybersecurity%'
-                  OR searchable_text LIKE '%cyber security%'
-                  OR searchable_text LIKE '%soc analyst%'
-                  OR searchable_text LIKE '%penetration%'
-                  OR searchable_text LIKE '%pentester%'
-                  OR searchable_text LIKE '%iam%'
-                  OR searchable_text LIKE '%siem%'
-                  OR searchable_text LIKE '%vulnerability%'
-                THEN 'Security / Cybersecurity'
-
-                WHEN searchable_text LIKE '%project manager%'
-                  OR searchable_text LIKE '%project coordinator%'
-                  OR searchable_text LIKE '%product owner%'
-                  OR searchable_text LIKE '%product manager%'
-                  OR searchable_text LIKE '%scrum master%'
-                  OR searchable_text LIKE '%pmo%'
-                  OR searchable_text LIKE '%delivery manager%'
-                THEN 'Project / Product / Management'
-
-                WHEN searchable_text LIKE '%rpa%'
-                  OR searchable_text LIKE '%robotic process automation%'
-                  OR searchable_text LIKE '%power automate%'
-                  OR searchable_text LIKE '%low code%'
-                  OR searchable_text LIKE '%low-code%'
-                  OR searchable_text LIKE '%no code%'
-                  OR searchable_text LIKE '%no-code%'
-                  OR searchable_text LIKE '%uipath%'
-                THEN 'RPA / Low-code / Automation'
-
-                WHEN searchable_text LIKE '%ux%'
-                  OR searchable_text LIKE '%ui%'
-                  OR searchable_text LIKE '%designer%'
-                  OR searchable_text LIKE '%product designer%'
-                  OR searchable_text LIKE '%figma%'
-                  OR searchable_text LIKE '%grafik%'
-                  OR searchable_text LIKE '%graficzka%'
-                THEN 'UX / UI / Design'
-
-                WHEN searchable_text LIKE '%android%'
-                  OR searchable_text LIKE '%ios%'
-                  OR searchable_text LIKE '%mobile developer%'
-                  OR searchable_text LIKE '%flutter%'
-                  OR searchable_text LIKE '%react native%'
-                  OR searchable_text LIKE '%swift%'
-                  OR searchable_text LIKE '%kotlin mobile%'
-                THEN 'Mobile'
-
-                WHEN searchable_text LIKE '%dba%'
-                  OR searchable_text LIKE '%database administrator%'
-                  OR searchable_text LIKE '%database developer%'
-                  OR searchable_text LIKE '%sql developer%'
-                  OR searchable_text LIKE '%postgresql%'
-                  OR searchable_text LIKE '%oracle database%'
-                THEN 'Database / DBA'
-
-                WHEN searchable_text LIKE '%embedded%'
-                  OR searchable_text LIKE '%firmware%'
-                  OR searchable_text LIKE '%iot%'
-                  OR searchable_text LIKE '%hardware%'
-                  OR searchable_text LIKE '%plc%'
-                THEN 'Embedded / Hardware / IoT'
-
-                WHEN searchable_text LIKE '%game developer%'
-                  OR searchable_text LIKE '%unity%'
-                  OR searchable_text LIKE '%unreal%'
-                  OR searchable_text LIKE '%technical artist%'
-                  OR searchable_text LIKE '%game playtester%'
-                THEN 'Game Dev'
-
-                WHEN searchable_text LIKE '%it recruiter%'
-                  OR searchable_text LIKE '%technical recruiter%'
-                  OR searchable_text LIKE '%talent acquisition%'
-                THEN 'IT Recruitment / HR'
-
-                WHEN searchable_text LIKE '%software developer%'
-                  OR searchable_text LIKE '%software engineer%'
-                  OR searchable_text LIKE '%programista%'
-                  OR searchable_text LIKE '%programistka%'
-                  OR searchable_text LIKE '%developer%'
-                  OR searchable_text LIKE '%engineer%'
-                THEN 'General Software Development'
-
-                WHEN searchable_text LIKE '%it specialist%'
-                  OR searchable_text LIKE '%specjalista ds. it%'
-                  OR searchable_text LIKE '%informatyk%'
-                  OR searchable_text LIKE '%młodszy specjalista it%'
-                  OR searchable_text LIKE '%junior it specialist%'
-                  OR searchable_text LIKE '%.net%'
-                THEN 'IT Specialist / General IT'
-
-                ELSE 'Other / Niepewne'
-            END AS category
-        FROM prepared_offers
-    )
-    SELECT
-        category AS category,
-        COUNT(*) AS count
-    FROM categorized_offers
-    GROUP BY category
-    ORDER BY count DESC
+        Select category,
+            count(*) AS count
+            From job_offers
+            Group BY category
+        Order By count DESC;
     """, nativeQuery = true)
     List<OffersByCategoryProjection> countOffersByCategory();
 
@@ -574,4 +294,59 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
            ORDER BY company ASC, COUNT(*) DESC
             """,nativeQuery = true)
     List<CompanyLocationProjection> findOffersByCompanyAndLocation();
+
+    @Query(value = """
+            select new com.junior.charts.dto.offer.JobSummaryDTO(
+                        j.title, j.company, j.location, j.requirements, j.offer_url, j.source, j.scraped_at, j.category)
+            from Offers j
+            where 
+                j.company like :companyName
+            order by 
+                j.scraped_at desc
+            limit 10
+            """)
+    List<JobSummaryDTO> companyLatestJobAdvertisements(@Param("companyName") String companyName);
+
+    @Query(value = """
+            SELECT 
+                count(j) 
+            FROM
+                Offers j 
+            WHERE 
+                j.company LIKE :companyName
+            AND 
+                YEAR(j.scraped_at) = :year
+            """)
+    Long amountOfJobAdvertisementsThisYear(@Param("companyName") String companyName,
+                                           @Param("year") int year);
+
+
+    @Query(value = """
+            SELECT
+                 j.source,
+                 COUNT(j)
+             FROM
+                 Offers j
+             WHERE
+                 j.company LIKE :companyName
+             AND
+                 YEAR(j.scraped_at) = :year
+             GROUP BY
+                 j.source
+            """)
+    List<Object[]> amountOfJobAdvertisementSources(@Param("companyName")String companyName,
+                                                                 @Param("year")int year);
+
+    @Query(value = """
+            SELECT
+                j.category,
+                COUNT(j)
+            FROM 
+                Offers j
+            WHERE 
+                j.company LIKE :companyName
+            GROUP BY 
+                category 
+            """)
+    List<Object[]> countJobOffersByCategoryAndCompany(@Param("companyName")String companyName);
 }

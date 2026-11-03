@@ -1,6 +1,7 @@
 package com.junior.charts.controller;
 
 import com.junior.charts.dto.*;
+import com.junior.charts.dto.offer.JobSummaryDTO;
 import com.junior.charts.service.OfferService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -69,4 +70,26 @@ public class OffersController {
     public Map<String, Map<String, Long>> getOffersByCompanyAndLocation(){
         return service.getOffersByCompanyAndLocation();
     }
+
+    @GetMapping("/latestJobAdvertisement")
+    public List<JobSummaryDTO> companyLatestJobAdvertisement(String companyName){
+        return service.companyLatestJobAdvertisement(companyName);
+    }
+
+    @GetMapping("/amountOfjobAdvertisements")
+    public Long amountOfJobAdvertisementsThisYear(String companyName, int year){
+        return service.amountOfJobAdvertisementsThisYear(companyName, year);
+    }
+
+    @GetMapping("/jobAdvertisementSources")
+    public List<Object[]> amountOfJobAdvertisementSources(String companyName,
+                                                          int year){
+        return service.amountOfJobAdvertisementSources(companyName,year);
+    }
+
+    @GetMapping("/jobOffersByCategory")
+    public List<Object[]> countJobOffersByCategoryAndCompany(String companyName){
+        return service.countJobOffersByCategoryAndCompany(companyName);
+    }
 }
+

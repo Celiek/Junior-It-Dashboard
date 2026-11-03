@@ -17,7 +17,7 @@ import { LocationOfferDto, CategoryDto } from '../../../core/models/market-api.m
         <div>
           <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
             <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base mb-0.5">Oferty wg Kategorii</h3>
-            <p class="text-xs text-slate-500">Podział rynku (kolumna <code>category</code>)</p>
+            <p class="text-xs text-slate-500">Podział rynku (zawartość wymagania)</p>
           </div>
 
           <!-- Kontener z wykresem pączkowym -->
@@ -94,7 +94,7 @@ export class DistributionChartsComponent implements OnChanges {
         labels: {
           boxWidth: 12,
           color: '#94a3b8',
-          font: { size: 11 }
+          font: { size: 12, weight: 'bold' }
         }
       }
     }

@@ -35,3 +35,23 @@ export interface CompanyOffersDTO{
   company: string;
   amount: number;
 }
+
+export type CompanyLocationOffersMap = Record<string, Record<string, number>>;
+
+export interface JobSummaryDTO {
+  title: string;
+  company: string;
+  location: string;
+  requirements: string;
+  offer_url: string;
+  source: string;
+  scraped_at: string;
+  category: string;
+}
+
+export interface CompanyDetailsData {
+  latestOffers: JobSummaryDTO[];
+  totalOffersThisYear: number;
+  sources: { source: string; count: number; percentage: number }[];
+  categories: { category: string; count: number }[];
+}

@@ -93,7 +93,10 @@ export class CompanyOffersChartsComponent implements OnChanges {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (context) => ` Opublikowane oferty: ${context.parsed.x}`
+          label: (context) => {
+            const parsedX = (context.parsed as { x?: number })?.x ?? 0;
+            return ` Opublikowane oferty: ${parsedX}`;
+          }
         }
       }
     },

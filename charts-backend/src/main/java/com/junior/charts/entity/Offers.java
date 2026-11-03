@@ -42,6 +42,9 @@ public class Offers {
     @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> raw_json;
 
+    @Column(name = "category")
+    private String category;
+
     @OneToMany(mappedBy = "offers", cascade = CascadeType.ALL)
     private List<Contracts> umowy = new ArrayList<>();
 
