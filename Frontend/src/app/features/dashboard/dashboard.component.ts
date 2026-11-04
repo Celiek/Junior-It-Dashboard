@@ -35,47 +35,55 @@ import {
     CompanyDrawerComponent
   ],
   template: `
-    <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
-      <!-- Pasek nawigacyjny (szeroki kontener 1440px) -->
-      <nav class="border-b border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur sticky top-0 z-20">
-        <div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+    <div class="dashboard-page min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+      
+      <!-- NOWY, OSTYLOWANY PASEK NAWIGACYJNY -->
+      <nav class="app-navbar">
+        <div class="navbar-container">
           
           <!-- LEWA STRONA: Logo + Linki -->
-          <div class="flex items-center gap-8">
-            <a routerLink="/" class="text-lg font-bold text-slate-900 dark:text-slate-100 no-underline cursor-pointer">
-              Junior IT <span class="text-indigo-600 dark:text-indigo-400">Analytics</span>
+          <div class="navbar-left">
+            <a routerLink="/" class="navbar-brand">
+              Junior IT <span class="brand-accent">Analytics</span>
             </a>
 
-            <div class="flex items-center gap-5">
+            <div class="navbar-links">
               <a routerLink="/" 
-                class="text-sm font-semibold text-indigo-600 dark:text-indigo-400 no-underline cursor-pointer">
+                 routerLinkActive="active" 
+                 [routerLinkActiveOptions]="{ exact: true }"
+                 class="nav-item">
                 Dashboard
               </a>
               <a routerLink="/about" 
-                class="text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-200 no-underline cursor-pointer transition-colors">
+                 routerLinkActive="active" 
+                 class="nav-item">
                 O projekcie
               </a>
             </div>
           </div>
 
           <!-- PRAWA STRONA: Przełącznik motywu -->
-          <button (click)="themeService.toggleTheme()" 
-                  class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer">
-            Przełącz tryb ciemny/jasny
+          <button type="button" 
+                  (click)="themeService.toggleTheme()" 
+                  class="theme-toggle-btn"
+                  title="Przełącz motyw">
+            <span class="theme-icon">🌓</span>
+            <span class="theme-label">Tryb ciemny / jasny</span>
           </button>
 
         </div>
       </nav>
 
-      <!-- GŁÓWNY KONTENER -->
+      <!-- GŁÓWNY KONTENER DASHBOARDU -->
       <main class="max-w-[1440px] mx-auto px-6 py-8 pb-24">
-        <!-- Hero Card -->
-        <div class="w-full bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-8">
+        
+        <!-- Karta informacyjna (Hero) -->
+        <div class="w-full bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm mb-8" style="margin-bottom:2rem">
           <h1 class="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
             Analiza Rynku Ofert Pracy IT
           </h1>
-          <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl">
-            Serwis agreguje ogłoszenia rynku pracy IT w Polsce dla juniorów w wielu kategoriach rynku (programowanie, data science, QA itd.). Dane są pobierane z Pracuj.pl i theProtocol.it, aktualizowane codziennie i prezentują aktualny stan rynku pracy.
+          <p class="text-md text-slate-400 dark:text-slate-400 leading-relaxed max-w-3xl">
+            Serwis agreguje ogłoszenia rynku pracy IT w Polsce dla juniorów w wielu kategoriach rynku (programowanie, data science, QA itd.). Dane są pobierane z Pracuj.pl i theProtocol.it, aktualizowane codziennie i prezentują aktualny stan rynku pracy. Więcej informacji o projekcie i metodach agregacji danych znajdziesz w zakładce <a routerLink="/about" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">O projekcie</a>.
           </p>
         </div>
 
@@ -126,6 +134,7 @@ import {
           [details]="companyDetails"
           (closed)="onCloseDrawer()">
         </app-company-drawer>
+
       </main>
     </div>
   `

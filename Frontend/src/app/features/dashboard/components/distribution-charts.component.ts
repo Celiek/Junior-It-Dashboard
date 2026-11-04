@@ -16,8 +16,8 @@ import { LocationOfferDto, CategoryDto } from '../../../core/models/market-api.m
       <div class="lg:col-span-6 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
         <div>
           <div class="border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
-            <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base mb-0.5">Oferty wg Kategorii</h3>
-            <p class="text-xs text-slate-500">Podział rynku (zawartość wymagania)</p>
+            <h3 class="font-bold text-xl text-slate-800 dark:text-slate-100 text-base mb-0.5">Oferty wg Kategorii</h3>
+            <p class="text-md text-slate-500">Podział rynku (zawartość wymagania)</p>
           </div>
 
           <!-- Kontener z wykresem pączkowym -->
@@ -32,8 +32,8 @@ import { LocationOfferDto, CategoryDto } from '../../../core/models/market-api.m
         <div>
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3 mb-4">
             <div>
-              <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base mb-0.5">Lokalizacja ofert</h3>
-              <p class="text-xs text-slate-500">Wartości z <code>location</code> oraz <code>liczba_ofert</code></p>
+              <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base mb-0.5 text-xl">Lokalizacja ofert</h3>
+              <p class="text-md text-slate-500">Wartości z <code>lokalizacji</code> oraz <code>przeliczonej liczby ofert</code>, niektóre oferty mogą posiadać więcej niż jedną lokalizację</p>
             </div>
 
             <!-- Slider Lokalizacji -->
@@ -94,7 +94,7 @@ export class DistributionChartsComponent implements OnChanges {
         labels: {
           boxWidth: 12,
           color: '#94a3b8',
-          font: { size: 12, weight: 'bold' }
+          font: { size: 14, weight: 'bold' }
         }
       }
     }

@@ -20,7 +20,7 @@ Chart.register(TreemapController, TreemapElement);
         <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">
           Popularność Technologii w Wymaganiach
         </h2>
-        <p class="text-sm text-slate-500 dark:text-slate-400">
+        <p class="text-md text-slate-500 dark:text-slate-400">
           Zestawienie kluczowych kompetencji: Top 10 liderów rynku oraz mapa pozostałych technologii specjalistycznych.
         </p>
       </div>

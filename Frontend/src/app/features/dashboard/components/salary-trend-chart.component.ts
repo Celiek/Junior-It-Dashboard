@@ -14,8 +14,8 @@ import { ThemeService } from '../../../core/services/theme.service';
     <div class="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
-          <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base">Średnie zarobki w czasie (PLN/mc)</h3>
-          <p class="text-xs text-slate-500">Miesięczne stawki uśrednione z pola <code>averageSalary</code></p>
+          <h3 class="font-bold text-slate-800 dark:text-slate-100 text-base text-xl">Średnie zarobki w czasie (PLN/mc)</h3>
+          <p class="text-md text-slate-500">Miesięczne stawki uśrednione z pola <code>averageSalary</code></p>
         </div>
       </div>
       <div class="relative h-72">
@@ -33,7 +33,7 @@ export class SalaryTrendChartComponent implements OnChanges {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top', labels: { color: '#64748b' } }
+      legend: { position: 'top', labels: { color: '#64748b',font:{size:14, weight:'normal'} } },
     },
     scales: {
       x: { ticks: { color: '#64748b' }, grid: { display: false } },

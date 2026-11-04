@@ -144,7 +144,7 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
 
         <!-- STOPKA -->
         <div class="drawer-footer">
-          <button type="button" (click)="close()" class="footer-btn">Zamknij</button>
+          <!-- Footer --> 
         </div>
 
       </aside>

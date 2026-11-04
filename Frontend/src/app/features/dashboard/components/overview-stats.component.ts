@@ -14,14 +14,14 @@ import { OffersOverviewDto } from '../../../core/models/market-api.models';
         <div class="overview-main">
           <div class="flex items-center gap-2 mb-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>
-            <span class="text-xs uppercase font-bold tracking-wider text-slate-400">
+            <span class="text-xl uppercase font-bold tracking-wider text-slate-400">
               Baza ogłoszeń
             </span>
           </div>
           <div class="text-4xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight my-1">
             {{ overview.totalOffers | number }}
           </div>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
+          <p class="text-md text-slate-500 dark:text-slate-400 mt-2">
             Zindeksowanych unikalnych ofert z <strong class="text-slate-700 dark:text-slate-200">{{ overview.totalSources }}</strong> portali
           </p>
         </div>

@@ -18,7 +18,7 @@ import { CompanyOffersDTO } from '../../../core/models/market-api.models';
           <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">
             Najbardziej Aktywni Pracodawcy
           </h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400">
+          <p class="text-md text-slate-500 dark:text-slate-400">
             Liczba ogłoszeń opublikowanych przez poszczególne firmy.
           </p>
         </div>
