@@ -2,8 +2,11 @@ package com.junior.charts.repo;
 
 import com.junior.charts.dto.*;
 import com.junior.charts.dto.offer.JobSummaryDTO;
+import com.junior.charts.dto.offer.OfferSummaryDTO;
 import com.junior.charts.entity.Offers;
 import com.junior.charts.projection.CompanyLocationProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -349,4 +352,65 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
                 category 
             """)
     List<Object[]> countJobOffersByCategoryAndCompany(@Param("companyName")String companyName);
+
+
+    //zwraca array w którym w zależności od miesiąca można zoabczyć ilość
+    //ofert nowych jak i ponownie wystawionych (nie duplikatów tylko ponownych wystawień ofert
+    // w ciągu danych
+    @Query(value = """
+        WITH offer_first_seen AS (
+            SELECT 
+                company,
+                MD5(LOWER(REPLACE(REPLACE(REPLACE(COALESCE(description, '') || COALESCE(requirements, ''), ' ', ''), E'\n', ''), E'\r', ''))) AS offer_hash,
+                MIN(scraped_at) AS first_seen_at
+            FROM job_offers
+            WHERE company = :companyName
+              AND description IS NOT NULL AND TRIM(description) <> '' 
+              AND LOWER(TRIM(description)) NOT IN ('brak opisu', 'brak', '-')
+              AND requirements IS NOT NULL AND TRIM(requirements) <> ''
+            GROUP BY company, offer_hash
+        ),
+        offer_activity AS (
+            SELECT 
+                jo.company,
+                jo.scraped_at,
+                og.first_seen_at,
+                CASE 
+                    WHEN DATE_TRUNC('month', jo.scraped_at) = DATE_TRUNC('month', og.first_seen_at) THEN 'NEW'
+                    ELSE 'RELISTED'
+                END AS offer_type
+            FROM job_offers jo
+            JOIN offer_first_seen og 
+              ON jo.company = og.company 
+             AND MD5(LOWER(REPLACE(REPLACE(REPLACE(COALESCE(jo.description, '') || COALESCE(jo.requirements, ''), ' ', ''), E'\n', ''), E'\r', ''))) = og.offer_hash
+            WHERE jo.company = :companyName
+              AND jo.description IS NOT NULL AND TRIM(jo.description) <> '' 
+              AND LOWER(TRIM(description)) NOT IN ('brak opisu', 'brak', '-')
+        )
+        SELECT 
+            TO_CHAR(scraped_at, 'YYYY-MM') AS month,
+            COUNT(CASE WHEN offer_type = 'NEW' THEN 1 END) AS brand_new_offers,   
+            COUNT(CASE WHEN offer_type = 'RELISTED' THEN 1 END) AS relisted_offers, 
+            COUNT(*) AS total_scraped_records                                      
+        FROM offer_activity
+        GROUP BY TO_CHAR(scraped_at, 'YYYY-MM')
+        ORDER BY month ASC;
+""", nativeQuery = true)
+    List<Object[]> findMonthlyNewAndRelistedOffers(@Param("companyName") String companyName);
+
+        @Query(value="""
+                SELECT NEW com.junior.charts.dto.offer.OfferSummaryDTO(
+                    j.title,
+                    j.location,
+                    j.technology,
+                    j.description,
+                    j.offer_url,
+                    j.scraped_at
+                )
+                FROM Offers j 
+                Where j.company = :companyName 
+                ORDER BY j.scraped_at DESC
+            """)
+        Page<OfferSummaryDTO> companyOfferList(@Param("companyName")String companyName, Pageable pageable);
+
 }

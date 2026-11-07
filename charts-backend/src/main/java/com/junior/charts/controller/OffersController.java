@@ -2,8 +2,11 @@ package com.junior.charts.controller;
 
 import com.junior.charts.dto.*;
 import com.junior.charts.dto.offer.JobSummaryDTO;
+import com.junior.charts.dto.offer.OfferSummaryDTO;
 import com.junior.charts.service.OfferService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -90,6 +93,16 @@ public class OffersController {
     @GetMapping("/jobOffersByCategory")
     public List<Object[]> countJobOffersByCategoryAndCompany(String companyName){
         return service.countJobOffersByCategoryAndCompany(companyName);
+    }
+
+    @GetMapping("/relistedoffers")
+    public List<Object[]> findMonthlyNewAndReslistedOffers(String companyName){
+        return service.findMonthlyNewAndRelistedoffers(companyName);
+    }
+
+    @GetMapping("/companyOfferList")
+    public Page<OfferSummaryDTO> companyOfferList(String companyName, Pageable page){
+        return service.companyOfferList(companyName, page);
     }
 }
 

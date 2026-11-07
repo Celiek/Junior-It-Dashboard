@@ -2,10 +2,13 @@ package com.junior.charts.service;
 
 import com.junior.charts.dto.*;
 import com.junior.charts.dto.offer.JobSummaryDTO;
+import com.junior.charts.dto.offer.OfferSummaryDTO;
 import com.junior.charts.entity.Offers;
 import com.junior.charts.projection.CompanyLocationProjection;
 import com.junior.charts.repo.OffersRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -130,5 +133,13 @@ public class OfferService {
 
     public List<Object[]> countJobOffersByCategoryAndCompany(String companyName){
         return repo.countJobOffersByCategoryAndCompany(companyName);
+    }
+
+    public List<Object[]> findMonthlyNewAndRelistedoffers(String comapnyName){
+        return repo.findMonthlyNewAndRelistedOffers(comapnyName);
+    }
+
+    public Page<OfferSummaryDTO> companyOfferList(String companyName, Pageable page) {
+        return repo.companyOfferList(companyName, page);
     }
 }
