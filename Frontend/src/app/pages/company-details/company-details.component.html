@@ -1,0 +1,355 @@
+<div
+    class="company-page min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between">
+
+    <!-- NAVBAR -->
+    <nav class="app-navbar">
+        <div class="navbar-container">
+            <div class="navbar-left">
+                <a routerLink="/" class="navbar-brand">
+                    Junior IT <span class="brand-accent">Analytics</span>
+                </a>
+
+                <div class="navbar-links">
+                    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+                        class="nav-item">
+                        Dashboard
+                    </a>
+                    <a routerLink="/companies" routerLinkActive="active" class="nav-item">
+                        Pracodawcy
+                    </a>
+                    <a routerLink="/about" routerLinkActive="active" class="nav-item">
+                        O projekcie
+                    </a>
+                </div>
+            </div>
+
+            <button type="button" (click)="themeService.toggleTheme()" class="theme-toggle-btn" title="Przełącz motyw">
+                <span class="theme-icon">&#9680;</span>
+                <span class="theme-label">Tryb ciemny / jasny</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- GŁÓWNA ZAWARTOŚĆ -->
+    <main class="content-container">
+
+        <!-- WYSZUKIWARKA -->
+        <section class="search-card">
+            <span class="section-badge">Baza firm</span>
+            <h1 class="card-main-title">Profil Pracodawcy</h1>
+            <p class="card-description">
+                Wyszukaj firmę, aby sprawdzić podział źródeł, rozkład kategorii, powtarzalność publikacji ogłoszeń oraz
+                aktualne wakaty.
+            </p>
+
+            <div class="search-box-wrapper" #searchContainer>
+                <div class="input-relative">
+                    <span class="search-icon">&#128269;</span>
+                    <input type="text" [formControl]="searchControl" (focus)="onInputFocus()"
+                        placeholder="Wpisz nazwę firmy (np. Allegro, Comarch)..." class="search-input" />
+
+                    <button *ngIf="searchControl.value" type="button" (click)="clearSearch()" class="clear-btn"
+                        title="Wyczyść">
+                        &#10005;
+                    </button>
+                </div>
+
+                <!-- DROPDOWN -->
+                <div *ngIf="isDropdownOpen && filteredCompanies.length > 0" class="suggestions-dropdown">
+                    <div class="dropdown-header">
+                        Znaleziono: {{ filteredCompanies.length }} {{ filteredCompanies.length === 1 ? 'firmę' : 'firm'
+                        }}
+                    </div>
+                    <ul class="suggestions-list">
+                        <li *ngFor="let company of filteredCompanies" (click)="selectCompany(company)"
+                            class="suggestion-item">
+                            <span class="company-name">{{ company }}</span>
+                            <span class="select-badge">Wybierz &rarr;</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div *ngIf="isDropdownOpen && searchControl.value && filteredCompanies.length === 0"
+                    class="suggestions-dropdown no-results">
+                    Nie znaleziono firmy pasującej do zapytania.
+                </div>
+            </div>
+        </section>
+
+        <!-- WIDOK DANYCH PO WYBRANIU FIRMY -->
+        <ng-container *ngIf="selectedCompany()">
+
+            <!-- NAGŁÓWEK FIRMY -->
+            <div class="company-header-bar">
+                <div>
+                    <span class="selected-badge">Wybrany pracodawca</span>
+                    <h2 class="offers-title">{{ selectedCompany() }}</h2>
+                </div>
+                <div *ngIf="companyDetails" class="offers-count-badge">
+                    Wszystkie w tym roku: <strong>{{ companyDetails.totalOffersThisYear }}</strong>
+                </div>
+            </div>
+
+            <!-- LOADER DANYCH GŁÓWNYCH -->
+            <div *ngIf="isLoadingDetails" class="loader-box">
+                <div class="spinner"></div>
+                <p>Pobieranie analityki i struktury wakatów...</p>
+            </div>
+
+            <ng-container *ngIf="!isLoadingDetails && companyDetails">
+
+                <!-- 1. KAFELKI: WOLUMEN I ŹRÓDŁA OGŁOSZEŃ -->
+                <section class="section-block">
+                    <span class="sub-header-title">WOLUMEN I ŹRÓDŁA OGŁOSZEŃ</span>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Wszystkie w tym roku</div>
+                            <div class="stat-value">{{ companyDetails.totalOffersThisYear }}</div>
+                            <div class="bar-track">
+                                <div class="bar-fill" style="width: 100%; background-color: #6366f1;"></div>
+                            </div>
+                        </div>
+
+                        <div *ngFor="let s of companyDetails.sources" class="stat-card">
+                            <div class="source-header">
+                                <span class="source-name">{{ s.source }}</span>
+                                <span class="source-count">
+                                    {{ s.count }}
+                                    <span class="source-pct">({{ s.percentage }}%)</span>
+                                </span>
+                            </div>
+                            <div class="bar-track">
+                                <div class="bar-fill" [style.width.%]="s.percentage"
+                                    [style.background-color]="getSourceBarColor(s.source)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. ROZKŁAD OFERT WEDŁUG KATEGORII (DOUGHNUT + LISTA) -->
+                <section class="chart-categories-card">
+                    <span class="sub-header-title mb-3 block">ROZKŁAD OFERT WEDŁUG KATEGORII</span>
+
+                    <div class="categories-layout">
+                        <div class="donut-wrapper">
+                            <canvas baseChart [data]="donutData" [options]="donutOptions" [type]="'doughnut'">
+                            </canvas>
+                        </div>
+
+                        <div class="categories-list-wrapper">
+                            <div *ngFor="let cat of companyDetails.categories; let idx = index" class="category-row">
+                                <div class="cat-left">
+                                    <span class="color-dot" [style.background-color]="getPaletteColor(idx)"></span>
+                                    <span class="cat-name">{{ cat.category }}</span>
+                                </div>
+                                <span class="cat-count">{{ cat.count }}</span>
+                            </div>
+
+                            <div *ngIf="companyDetails.categories.length === 0"
+                                class="text-sm text-slate-500 py-4 text-center">
+                                Brak danych o kategoriach dla tego pracodawcy.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </ng-container>
+
+            <!-- 3. TABELA CYKLICZNOŚCI (RELISTING) -->
+            <section class="section-block">
+                <div class="section-heading">
+                    <div>
+                        <h3 class="section-title">🔄 Cykliczność i wznawianie ofert (Relisting)</h3>
+                        <p class="section-subtitle">
+                            Zestawienie liczby unikalnych ofert debiutujących na rynku vs ogłoszeń ponawianych w
+                            kolejnych miesiącach na podstawie skrótu treści (MD5 hash).
+                        </p>
+                    </div>
+                </div>
+
+                <div *ngIf="isLoadingRelisted" class="loader-box">
+                    <div class="spinner"></div>
+                    <p>Analiza cyklu życia ofert...</p>
+                </div>
+
+                <div *ngIf="!isLoadingRelisted && relistedStats.length > 0" class="table-card">
+                    <div class="table-responsive">
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>Miesiąc</th>
+                                    <th style="text-align: right;">Nowe oferty (Brand New)</th>
+                                    <th style="text-align: right;">Wznowione oferty (Relisted)</th>
+                                    <th style="text-align: right;">Łącznie zebrane</th>
+                                    <th style="text-align: right;">Wskaźnik wznowień</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let stat of relistedStats">
+                                    <td class="font-mono font-bold text-white">
+                                        📅 {{ stat.month }}
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span class="badge-new">+{{ stat.brandNewOffers }}</span>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <span class="badge-relisted">🔄 {{ stat.relistedOffers }}</span>
+                                    </td>
+                                    <td style="text-align: right;" class="text-slate-300 font-mono">
+                                        {{ stat.totalRecords }}
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <div class="ratio-cell">
+                                            <div class="ratio-bar-bg">
+                                                <div class="ratio-bar-fill"
+                                                    [style.width.%]="stat.relistRatioPercentage"></div>
+                                            </div>
+                                            <span class="ratio-text">{{ stat.relistRatioPercentage }}%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div *ngIf="!isLoadingRelisted && relistedStats.length === 0" class="empty-state">
+                    Brak zidentyfikowanej historii ponawiania ofert dla tej firmy.
+                </div>
+            </section>
+
+            <!-- 4. GŁÓWNA TABELA OFERT Z PAGINACJĄ -->
+            <section class="section-block">
+                <div class="section-heading">
+                    <div>
+                        <h3 class="section-title">📋 Lista ogłoszeń rekrutacyjnych</h3>
+                        <p class="section-subtitle">Przegląd ofert ze szczegółowymi wymaganiami oraz odnośnikami do
+                            formularzy aplikacyjnych.</p>
+                    </div>
+                </div>
+
+                <div *ngIf="isLoadingOffers" class="loader-box">
+                    <div class="spinner"></div>
+                    <p>Pobieranie listy wakatów...</p>
+                </div>
+
+                <div *ngIf="!isLoadingOffers && pageData" class="table-card">
+                    <div class="table-responsive">
+                        <table class="styled-table">
+                            <thead>
+                                <tr>
+                                    <th>Stanowisko</th>
+                                    <th>Lokalizacja</th>
+                                    <th>Kategoria</th>
+                                    <th>Źródło</th>
+                                    <th style="text-align: center;">Szczegóły</th>
+                                    <th style="text-align: right;">Link</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let offer of pageData.content">
+                                    <td class="font-bold text-white max-w-[280px] truncate" [title]="offer.title">
+                                        {{ offer.title }}
+                                    </td>
+                                    <td class="text-slate-400">
+                                        {{ offer.location || 'Brak danych' }}
+                                    </td>
+                                    <td>
+                                        <span class="cat-badge">{{ offer.category || 'Inne' }}</span>
+                                    </td>
+                                    <td class="font-mono text-xs text-slate-400">
+                                        {{ offer.source }}
+                                    </td>
+                                    <td style="text-align: center;">
+                                        <button type="button" (click)="openDescriptionModal(offer)" class="desc-btn">
+                                            📄 Pokaż opis
+                                        </button>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <a [href]="offer.offer_url" target="_blank" rel="noopener noreferrer"
+                                            class="apply-btn">
+                                            Aplikuj ↗
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <tr *ngIf="pageData.content.length === 0">
+                                    <td colspan="6" class="no-offers">
+                                        Brak ofert dla tej firmy w wybranym filtrze.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- PRZYCISKI PAGINACJI -->
+                    <div *ngIf="pageData.totalPages > 1" class="pagination-bar">
+                        <button type="button" [disabled]="pageData.first" (click)="goToPage(currentPage - 1)"
+                            class="page-nav-btn">
+                            Poprzednia
+                        </button>
+
+                        <div class="page-numbers">
+                            <button *ngFor="let p of getPaginationRange()" type="button"
+                                [class.active]="p === currentPage" (click)="goToPage(p)" class="page-btn">
+                                {{ p + 1 }}
+                            </button>
+                        </div>
+
+                        <button type="button" [disabled]="pageData.last" (click)="goToPage(currentPage + 1)"
+                            class="page-nav-btn">
+                            Następna
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </ng-container>
+
+    </main>
+
+    <!-- MODAL DLA DESCRIPTION -->
+    <div *ngIf="selectedOfferForModal" class="modal-backdrop" (click)="closeDescriptionModal()">
+        <div class="modal-panel" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <div>
+                    <span class="modal-badge">{{ selectedOfferForModal.category || 'Oferta pracy' }}</span>
+                    <h3 class="modal-title">{{ selectedOfferForModal.title }}</h3>
+                    <p class="modal-subtitle">{{ selectedCompany() }} • {{ selectedOfferForModal.location }}</p>
+                </div>
+                <button type="button" (click)="closeDescriptionModal()" class="modal-close-btn" title="Zamknij">
+                    ✕
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <div class="description-text">
+                    {{ selectedOfferForModal.description || 'Brak treści opisu w ogłoszeniu.' }}
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <a [href]="selectedOfferForModal.offer_url" target="_blank" rel="noopener noreferrer"
+                    class="apply-btn-modal">
+                    Przejdź do oferty ↗
+                </a>
+                <button type="button" (click)="closeDescriptionModal()" class="close-btn-modal">
+                    Zamknij
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p class="footer-main">
+                <strong>Junior IT Analytics</strong> &bull; Niezależny projekt analityczny do badania trendów rynkowych
+                w Polsce.
+            </p>
+        </div>
+    </footer>
+
+</div>

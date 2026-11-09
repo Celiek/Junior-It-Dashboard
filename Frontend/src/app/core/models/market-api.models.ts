@@ -55,3 +55,38 @@ export interface CompanyDetailsData {
   sources: { source: string; count: number; percentage: number }[];
   categories: { category: string; count: number }[];
 }
+
+export interface OfferSummaryDTO {
+  id?: number | string;
+  title: string;
+  company: string;
+  location: string;
+  category: string;
+  source: string;
+  offer_url: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryCurrency?: string;
+  employmentType?: string;
+  description: string;
+  publishedAt?: string;
+}
+
+export interface SpringPage<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
+
+export interface RelistedOfferMonthlyDto {
+  month: string;
+  brandNewOffers: number;
+  relistedOffers: number;
+  totalRecords: number;
+  relistRatioPercentage: number;
+}

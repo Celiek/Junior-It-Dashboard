@@ -29,26 +29,49 @@ export class SalaryTrendChartComponent implements OnChanges {
   private themeService = inject(ThemeService);
 
   public chartData: ChartData<'line'> = { labels: [], datasets: [] };
-  public chartOptions: ChartConfiguration<'line'>['options'] = {
+public chartOptions: ChartConfiguration<'line'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top', labels: { color: '#64748b',font:{size:14, weight:'normal'} } },
+      legend: { 
+        position: 'top', 
+        labels: { 
+          color: '#64748b', 
+          font: { size: 14, weight: 'normal' } 
+        } 
+      },
     },
     scales: {
-      x: { ticks: { color: '#64748b' }, grid: { display: false } },
-      y: { ticks: { color: '#64748b' }, grid: { color: '#f1f5f9' } }
+      x: { 
+        ticks: { color: '#64748b' }, 
+        grid: { display: false } 
+      },
+      y: { 
+        ticks: { color: '#64748b' }, 
+        grid: { 
+          color: 'rgba(51, 65, 85, 0.35)', 
+          lineWidth: 1 
+        } 
+      }
     }
   };
 
   constructor() {
     effect(() => {
       const colors = this.themeService.getChartColors();
+      
       if (this.chartOptions?.scales) {
-        if (this.chartOptions.scales['x']) this.chartOptions.scales['x'].ticks = { color: colors.text };
+        if (this.chartOptions.scales['x']) {
+          this.chartOptions.scales['x'].ticks = { color: colors.text };
+        }
+        
         if (this.chartOptions.scales['y']) {
           this.chartOptions.scales['y'].ticks = { color: colors.text };
-          this.chartOptions.scales['y'].grid = { color: colors.grid };
+          // Zamiast colors.grid, wymuś ciemną, subtelną linię:
+          this.chartOptions.scales['y'].grid = { 
+            color: 'rgba(51, 65, 85, 0.4)', 
+            lineWidth: 1 
+          };
         }
       }
     });

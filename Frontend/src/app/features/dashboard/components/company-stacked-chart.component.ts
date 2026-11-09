@@ -1,9 +1,22 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, Output, EventEmitter } from '@angular/core';
+import { 
+  Component, 
+  Input, 
+  OnChanges, 
+  OnInit, 
+  SimpleChanges, 
+  ViewChild, 
+  Output, 
+  EventEmitter, 
+  inject, 
+  ElementRef, 
+  HostListener 
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 import { CompanyLocationOffersMap } from '../../../core/models/market-api.models';
+import { AnalyticsService } from '../../../core/services/analytics.service';
 
 @Component({
   selector: 'app-company-stacked-chart',
@@ -18,43 +31,64 @@ import { CompanyLocationOffersMap } from '../../../core/models/market-api.models
           <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">
             Pracodawcy: Rozkład Geograficzny Ofert
           </h2>
-          <p class="text-sm text-slate-500 dark:text-slate-400">
+          <p class="text-sm text-slate-500 dark:text-slate-400 mt-1 mb-2">
             Skumulowana liczba ogłoszeń per pracodawca z podziałem na miasta i pracę zdalną.
           </p>
           <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
-                <span class="text-xs">👆</span> Kliknij słupek, aby zobaczyć szczegóły firmy
-            </span>
+            <span class="text-xs">👆</span> Kliknij słupek, aby zobaczyć szczegóły firmy
+          </span>
         </div>
 
         <!-- Pasek akcji: Wyszukiwarka + Slider -->
         <div class="flex flex-wrap items-center gap-3">
           
-          <!-- Input Wyszukiwarki -->
-          <div class="relative flex items-center min-w-[280px] sm:min-w-[340px]">
-  <span class="absolute left-3.5 text-slate-400 dark:text-slate-300 text-sm pointer-events-none"></span>
-  
-        <input
-            type="text"
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearchChange()"
-            placeholder="Szukaj firmy (np. Comarch)..."
-            class="w-full pl-10 pr-9 py-2.5 text-sm font-medium rounded-xl 
-                bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white 
-                placeholder-slate-500 dark:placeholder-slate-400 
-                border border-slate-300 dark:border-slate-600 
-                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent 
-                shadow-inner transition-all"
-        />
+          <!-- Kontener Wyszukiwarki z Autocomplete -->
+          <div class="relative min-w-[280px] sm:min-w-[340px]">
+            <div class="relative flex items-center">
+              <span class="absolute left-3.5 text-slate-400 dark:text-slate-500 text-sm pointer-events-none">🔍</span>
+              
+              <input
+                type="text"
+                [(ngModel)]="searchQuery"
+                (input)="onSearchInput()"
+                (focus)="onSearchFocus()"
+                placeholder="Szukaj firmy (np. Comarch)..."
+                class="w-full pl-10 pr-9 py-2.5 text-sm font-medium rounded-xl 
+                       bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white 
+                       placeholder-slate-500 dark:placeholder-slate-400 
+                       border border-slate-300 dark:border-slate-600 
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent 
+                       shadow-inner transition-all"
+              />
 
-        <!-- Przycisk wyczyszczenia filtra -->
-        <button
-            *ngIf="searchQuery"
-            (click)="clearSearch()"
-            class="absolute right-3 p-1 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition-colors cursor-pointer"
-            title="Wyczyść wyszukiwanie">
-            ✕
-        </button>
-        </div>
+              <!-- Przycisk wyczyszczenia filtra -->
+              <button
+                *ngIf="searchQuery"
+                type="button"
+                (click)="clearSearch()"
+                class="absolute right-3 p-1 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                title="Wyczyść wyszukiwanie">
+                ✕
+              </button>
+            </div>
+
+            <!-- Rozwijana lista podpowiedzi firm -->
+            <div *ngIf="isDropdownOpen && suggestions.length > 0" 
+                 class="absolute left-0 right-0 top-full mt-1.5 bg-[#0b1120] border border-slate-700 rounded-xl shadow-2xl max-h-56 overflow-y-auto z-50">
+              <div class="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider bg-slate-900/80 border-b border-slate-800">
+                Podpowiedzi firm ({{ suggestions.length }})
+              </div>
+              <ul class="divide-y divide-slate-800/60 m-0 p-0 list-none">
+                <li 
+                  *ngFor="let item of suggestions"
+                  (click)="selectSuggestion(item)"
+                  class="px-3.5 py-2 text-xs text-slate-200 hover:bg-indigo-600/20 hover:text-indigo-300 cursor-pointer flex items-center justify-between transition-colors">
+                  <span class="truncate font-medium">{{ item }}</span>
+                  <span class="text-[10px] text-indigo-400 font-mono ml-2">Wybierz &rarr;</span>
+                </li>
+              </ul>
+            </div>
+          </div>
 
           <!-- Slider (widoczny tylko gdy nie ma aktywnego wyszukiwania i jest > 5 firm) -->
           <div *ngIf="!searchQuery && totalCompaniesCount > 5" 
@@ -109,33 +143,31 @@ import { CompanyLocationOffersMap } from '../../../core/models/market-api.models
       width: 100%;
       transition: height 0.25s ease-out;
     }
+    ul::-webkit-scrollbar {
+      width: 4px;
+    }
+    ul::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
   `]
 })
-export class CompanyStackedChartComponent implements OnChanges {
-  @Output() companySelected = new EventEmitter<string>();
-  openCompanyDetails(companyName: string):void {
-      this.companySelected.emit(companyName);
-  }
+export class CompanyStackedChartComponent implements OnInit, OnChanges {
+  private analyticsService = inject(AnalyticsService);
+  private elementRef = inject(ElementRef);
 
   @Input() data: CompanyLocationOffersMap | null = null;
+  @Output() companySelected = new EventEmitter<string>();
   @ViewChild(BaseChartDirective) chart?: BaseChartDirective;
 
-  searchQuery: string = '';
-  displayLimit: number = 10;
-  maxLimit: number = 250;
-  filteredCompaniesCount: number = 0;
+  searchQuery = '';
+  displayLimit = 10;
+  maxLimit = 250;
+  filteredCompaniesCount = 0;
 
-  get totalCompaniesCount(): number {
-    return this.data ? Object.keys(this.data).length : 0;
-  }
-
-  // Dynamiczna wysokość dostosowująca się do 1 firmy lub N firm
-  get calculatedChartHeight(): number {
-    const rowHeight = 42;
-    const basePadding = 90; // miejsce na legendę lokalizacji i oś X
-    const count = this.filteredCompaniesCount || 1;
-    return Math.max(180, count * rowHeight + basePadding);
-  }
+  allCompanyNames: string[] = [];
+  suggestions: string[] = [];
+  isDropdownOpen = false;
 
   private cityPalette: Record<string, string> = {
     'Remote': '#10b981',
@@ -158,7 +190,7 @@ export class CompanyStackedChartComponent implements OnChanges {
     responsive: true,
     maintainAspectRatio: false,
     indexAxis: 'y',
-   onHover: (event, chartElement) => {
+    onHover: (event, chartElement) => {
       const target = event.native?.target as HTMLElement | null;
       if (target) {
         target.style.cursor = chartElement.length ? 'pointer' : 'default';
@@ -166,14 +198,7 @@ export class CompanyStackedChartComponent implements OnChanges {
     },
     plugins: {
       legend: {
-        display: false,
-        position: 'top',
-        labels: {
-          color: '#cbd5e1',
-          boxWidth: 12,
-          padding: 15,
-          font: { size: 11 }
-        }
+        display: false
       },
       tooltip: {
         callbacks: {
@@ -183,7 +208,8 @@ export class CompanyStackedChartComponent implements OnChanges {
             const offersCount = (context.parsed as { x?: number })?.x ?? 0;
             if (offersCount === 0) return '';
             return ` Lokalizacja: ${location} — ${offersCount} ofert`;
-          }
+          },
+          afterBody: () => '\n💡 Kliknij słupek, aby zobaczyć szczegóły'
         }
       }
     },
@@ -201,23 +227,31 @@ export class CompanyStackedChartComponent implements OnChanges {
           font: { size: 12, weight: 'bold' }
         }
       }
-    }
-    ,
+    },
     onClick: (event, elements) => {
-    if (elements && elements.length > 0) {
-      const index = elements[0].index;
-      const companyName = this.chartData.labels?.[index] as string;
-      if (companyName) {
-        this.openCompanyDetails(companyName);
+      if (elements && elements.length > 0) {
+        const index = elements[0].index;
+        const companyName = this.chartData.labels?.[index] as string;
+        if (companyName) {
+          this.companySelected.emit(companyName);
+        }
       }
     }
-  }
   };
 
   public chartData: ChartData<'bar'> = {
     labels: [],
     datasets: []
   };
+
+  ngOnInit(): void {
+    this.analyticsService.getCompanies().subscribe({
+      next: (companies) => {
+        this.allCompanyNames = Array.isArray(companies) ? companies.sort() : [];
+      },
+      error: (err) => console.error('Błąd podczas pobierania listy firm:', err)
+    });
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data'] && this.data) {
@@ -229,12 +263,49 @@ export class CompanyStackedChartComponent implements OnChanges {
     }
   }
 
-  onSearchChange(): void {
+  get totalCompaniesCount(): number {
+    return this.data ? Object.keys(this.data).length : 0;
+  }
+
+  get calculatedChartHeight(): number {
+    const rowHeight = 42;
+    const basePadding = 90;
+    const count = this.filteredCompaniesCount || 1;
+    return Math.max(180, count * rowHeight + basePadding);
+  }
+
+  onSearchInput(): void {
+    const query = this.searchQuery.trim().toLowerCase();
+
+    if (!query) {
+      this.suggestions = [];
+      this.isDropdownOpen = false;
+    } else {
+      this.suggestions = this.allCompanyNames
+        .filter(name => name.toLowerCase().includes(query))
+        .slice(0, 10);
+      this.isDropdownOpen = this.suggestions.length > 0;
+    }
+
+    this.updateChart();
+  }
+
+  onSearchFocus(): void {
+    if (this.searchQuery && this.searchQuery.trim()) {
+      this.onSearchInput();
+    }
+  }
+
+  selectSuggestion(company: string): void {
+    this.searchQuery = company;
+    this.isDropdownOpen = false;
     this.updateChart();
   }
 
   clearSearch(): void {
     this.searchQuery = '';
+    this.suggestions = [];
+    this.isDropdownOpen = false;
     this.updateChart();
   }
 
@@ -242,18 +313,27 @@ export class CompanyStackedChartComponent implements OnChanges {
     this.updateChart();
   }
 
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    if (!this.elementRef.nativeElement.contains(event.target)) {
+      this.isDropdownOpen = false;
+    }
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape(): void {
+    this.isDropdownOpen = false;
+  }
+
   private updateChart(): void {
     if (!this.data) return;
 
-    // 1. Zliczanie łącznej liczby ofert dla każdej firmy
     const allCompanies = Object.entries(this.data).map(([company, locations]) => {
       const total = Object.values(locations).reduce((sum, val) => sum + val, 0);
       return { company, locations, total };
     });
 
     let selectedCompanies: { company: string; locations: Record<string, number>; total: number }[];
-
-    // 2. Filtrowanie po wpisanej frazie vs pobranie Top N ze slidera
     const query = this.searchQuery.trim().toLowerCase();
 
     if (query) {
@@ -275,14 +355,12 @@ export class CompanyStackedChartComponent implements OnChanges {
 
     const labels = selectedCompanies.map(c => c.company);
 
-    // 3. Unikalne miasta obecne w wybranej grupie
     const citiesSet = new Set<string>();
     selectedCompanies.forEach(c => {
       Object.keys(c.locations).forEach(city => citiesSet.add(city));
     });
     const cities = Array.from(citiesSet);
 
-    // 4. Budowa datasetów Chart.js
     let colorIdx = 0;
     const datasets = cities.map(city => {
       const color = this.cityPalette[city] || this.defaultColors[colorIdx++ % this.defaultColors.length];

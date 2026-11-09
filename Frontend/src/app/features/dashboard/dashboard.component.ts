@@ -59,6 +59,12 @@ import {
                  class="nav-item">
                 O projekcie
               </a>
+              <a routerLink = "/companies"
+                  routerLinkActive="active" 
+                 [routerLinkActiveOptions]="{ exact: true }"
+                 class="nav-item">
+                Szczegóły firmy
+              </a>  
             </div>
           </div>
 

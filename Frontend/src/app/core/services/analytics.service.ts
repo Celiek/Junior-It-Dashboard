@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, forkJoin, map } from 'rxjs';
 import {
   LocationOfferDto,
@@ -10,7 +10,9 @@ import {
   CompanyOffersDTO,
   JobSummaryDTO,
   CompanyDetailsData,
-  
+  SpringPage, 
+  OfferSummaryDTO,
+  RelistedOfferMonthlyDto
 } from '../models/market-api.models';
 
 export interface DashboardApiResponse {
@@ -26,8 +28,8 @@ export interface DashboardApiResponse {
 export class AnalyticsService {
   private http = inject(HttpClient);
   
-  private readonly baseUrl = 'https://juniorapi.mikrus.dev/api/offers';
-  //private readonly baseUrl = 'http://localhost:8080/api/offers';
+  //private readonly baseUrl = 'https://juniorapi.mikrus.dev/api/offers';
+  private readonly baseUrl = 'http://localhost:8080/api/offers';
 
   getLocations(): Observable<LocationOfferDto[]> {
     return this.http.get<LocationOfferDto[]>(`${this.baseUrl}/countOffersByLocation`);
@@ -90,46 +92,84 @@ export class AnalyticsService {
     });
   }
 
-getCompanyFullDetails(companyName: string): Observable<CompanyDetailsData> {
-    const currentYear = new Date().getFullYear();
+  getCompanyFullDetails(companyName: string): Observable<CompanyDetailsData> {
+      const currentYear = new Date().getFullYear();
 
-    return forkJoin({
-      latestOffers: this.getCompanyLatestJobs(companyName),
-      totalOffersThisYear: this.getCompanyTotalOffersThisYear(companyName, currentYear),
-      sourcesRaw: this.getCompanySources(companyName, currentYear),
-      categoriesRaw: this.getCompanyOffersByCategory(companyName)
-    }).pipe(
-      map(res => {
-        console.log('Odpowiedzi z API dla firmy:', res); // <--- Podejrzyj w konsoli co dokładnie przyszło!
+      return forkJoin({
+        latestOffers: this.getCompanyLatestJobs(companyName),
+        totalOffersThisYear: this.getCompanyTotalOffersThisYear(companyName, currentYear),
+        sourcesRaw: this.getCompanySources(companyName, currentYear),
+        categoriesRaw: this.getCompanyOffersByCategory(companyName)
+      }).pipe(
+        map(res => {
+          //console.log('Odpowiedzi z API dla firmy:', res); // <--- Podejrzyj w konsoli co dokładnie przyszło!
 
-        // Bezpieczne parsowanie źródeł
-        const rawSources = Array.isArray(res.sourcesRaw) ? res.sourcesRaw : [];
-        const totalSources = rawSources.reduce((sum: number, item: any) => {
-          const val = Number(Array.isArray(item) ? item[1] : item?.count ?? 0);
-          return sum + (isNaN(val) ? 0 : val);
-        }, 0);
+          // Bezpieczne parsowanie źródeł
+          const rawSources = Array.isArray(res.sourcesRaw) ? res.sourcesRaw : [];
+          const totalSources = rawSources.reduce((sum: number, item: any) => {
+            const val = Number(Array.isArray(item) ? item[1] : item?.count ?? 0);
+            return sum + (isNaN(val) ? 0 : val);
+          }, 0);
 
-        const sources = rawSources.map((item: any) => {
-          const name = String(Array.isArray(item) ? item[0] : item?.source ?? 'Inne');
-          const count = Number(Array.isArray(item) ? item[1] : item?.count ?? 0);
-          const percentage = totalSources > 0 ? Math.round((count / totalSources) * 100) : 0;
-          return { source: name, count, percentage };
+          const sources = rawSources.map((item: any) => {
+            const name = String(Array.isArray(item) ? item[0] : item?.source ?? 'Inne');
+            const count = Number(Array.isArray(item) ? item[1] : item?.count ?? 0);
+            const percentage = totalSources > 0 ? Math.round((count / totalSources) * 100) : 0;
+            return { source: name, count, percentage };
+          });
+
+          // Bezpieczne parsowanie kategorii
+          const rawCategories = Array.isArray(res.categoriesRaw) ? res.categoriesRaw : [];
+          const categories = rawCategories.map((item: any) => {
+            const catName = String(Array.isArray(item) ? item[0] : item?.category ?? 'Inne');
+            const count = Number(Array.isArray(item) ? item[1] : item?.count ?? 0);
+            return { category: catName, count };
+          });
+
+          return {
+            latestOffers: Array.isArray(res.latestOffers) ? res.latestOffers : [],
+            totalOffersThisYear: Number(res.totalOffersThisYear) || 0,
+            sources,
+            categories
+          };
+        })
+      );
+    }
+
+  getCompanies() : Observable<string[] > {
+    return this.http.get<string[]>(`${this.baseUrl}/companies`);
+  }
+
+  getCompanyOfferList(companyName: string, page: number = 0, size: number = 10): Observable<SpringPage<OfferSummaryDTO>> {
+    const params = new HttpParams()
+      .set('companyName', companyName)
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.http.get<SpringPage<OfferSummaryDTO>>(`${this.baseUrl}/companyOfferList`, { params });
+  }
+
+  getCompanyRelistedOffers(companyName: string): Observable<RelistedOfferMonthlyDto[]> {
+    const params = new HttpParams().set('companyName', companyName);
+
+    return this.http.get<any[][]>(`${this.baseUrl}/relistedoffers`, { params }).pipe(
+      map((rows) => {
+        if (!Array.isArray(rows)) return [];
+        return rows.map((row) => {
+          const month = String(row[0]);
+          const brandNew = Number(row[1]) || 0;
+          const relisted = Number(row[2]) || 0;
+          const total = Number(row[3]) || (brandNew + relisted);
+          const relistRatio = total > 0 ? Math.round((relisted / total) * 100) : 0;
+
+          return {
+            month,
+            brandNewOffers: brandNew,
+            relistedOffers: relisted,
+            totalRecords: total,
+            relistRatioPercentage: relistRatio
+          };
         });
-
-        // Bezpieczne parsowanie kategorii
-        const rawCategories = Array.isArray(res.categoriesRaw) ? res.categoriesRaw : [];
-        const categories = rawCategories.map((item: any) => {
-          const catName = String(Array.isArray(item) ? item[0] : item?.category ?? 'Inne');
-          const count = Number(Array.isArray(item) ? item[1] : item?.count ?? 0);
-          return { category: catName, count };
-        });
-
-        return {
-          latestOffers: Array.isArray(res.latestOffers) ? res.latestOffers : [],
-          totalOffersThisYear: Number(res.totalOffersThisYear) || 0,
-          sources,
-          categories
-        };
       })
     );
   }

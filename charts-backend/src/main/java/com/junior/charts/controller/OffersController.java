@@ -95,6 +95,7 @@ public class OffersController {
         return service.countJobOffersByCategoryAndCompany(companyName);
     }
 
+    //zwraca ilość ofert które owtarzały się w czasie dla firmy
     @GetMapping("/relistedoffers")
     public List<Object[]> findMonthlyNewAndReslistedOffers(String companyName){
         return service.findMonthlyNewAndRelistedoffers(companyName);
@@ -103,6 +104,22 @@ public class OffersController {
     @GetMapping("/companyOfferList")
     public Page<OfferSummaryDTO> companyOfferList(String companyName, Pageable page){
         return service.companyOfferList(companyName, page);
+    }
+
+    @GetMapping("/companies")
+    public List<String> findAllDistinctComapnies(){
+        return service.findAllDistinctComapnies();
+    }
+
+    @GetMapping("/offersForCompanyOnDate")
+    public List<Object[]> findAllOffersForCompanyOnDate(String companName,
+                                                        String yearMonth){
+        return service.findAllOffersForCompanyOnDate(companName,yearMonth);
+    }
+
+    @GetMapping("/offerWithoutSalary")
+    public Long countOffersWithoutSalaryByCompany(String companyName){
+        return service.countOffersWithoutSalaryByCompany(companyName);
     }
 }
 

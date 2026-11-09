@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -398,19 +399,57 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
 """, nativeQuery = true)
     List<Object[]> findMonthlyNewAndRelistedOffers(@Param("companyName") String companyName);
 
-        @Query(value="""
-                SELECT NEW com.junior.charts.dto.offer.OfferSummaryDTO(
-                    j.title,
-                    j.location,
-                    j.technology,
-                    j.description,
-                    j.offer_url,
-                    j.scraped_at
-                )
-                FROM Offers j 
-                Where j.company = :companyName 
-                ORDER BY j.scraped_at DESC
-            """)
-        Page<OfferSummaryDTO> companyOfferList(@Param("companyName")String companyName, Pageable pageable);
+    @Query(value="""
+            SELECT NEW com.junior.charts.dto.offer.OfferSummaryDTO(
+                j.title,
+                j.location,
+                j.technology,
+                j.description,
+                j.offer_url,
+                j.scraped_at
+            )
+            FROM Offers j 
+            Where j.company = :companyName 
+            AND 
+                j.description is not null
+            AND
+                TRIM(j.description) <> ''
+            AND LOWER(TRIM(j.description)) NOT IN ('brak opisu', 'brak')
+            ORDER BY j.scraped_at DESC
+        """)
+    Page<OfferSummaryDTO> companyOfferList(@Param("companyName")String companyName, Pageable pageable);
 
+
+    @Query("SELECT DISTINCT o.company FROM Offers o WHERE o.company IS NOT NULL ORDER BY o.company ASC")
+    List<String> findAllDistinctComapnies();
+
+    @Query(value = """
+            select\s
+            	title,
+            	location,\s
+            	technologies,
+            	description,\s
+            	offer_url,
+            	scraped_at
+            from\s
+            	job_offers
+            where\s
+            	TO_CHAR(scraped_at, 'YYYY-MM') = :yearMonth
+            and
+            	company = :companyName;
+            """,nativeQuery = true)
+    List<Object[]> findAllOffersForCompanyOnDate(@Param("companyName") String companyName, @Param("yearMonth") String yearMonth);
+
+    @Query(value = """
+            SELECT COUNT(DISTINCT jo.id)
+                FROM job_offers jo
+                WHERE jo.company = :companyName
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM job_offer_contracts joc
+                      WHERE joc.job_offer_id = jo.id
+                        AND (joc.salary_min IS NOT NULL OR joc.salary_max IS NOT NULL)
+                  )
+            """,nativeQuery = true)
+    Long countOffersWithoutSalaryByCompany(@Param("companyName")String companyName);
 }

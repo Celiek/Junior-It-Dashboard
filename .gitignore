@@ -2,3 +2,4 @@
 /Frontend/node_modules
 /Frontend/.angular
 charts-backend/src/main/resources/application.properties
+/Frontend/dist/frontend/browser

@@ -142,4 +142,16 @@ public class OfferService {
     public Page<OfferSummaryDTO> companyOfferList(String companyName, Pageable page) {
         return repo.companyOfferList(companyName, page);
     }
+
+    public List<String> findAllDistinctComapnies(){
+        return repo.findAllDistinctComapnies();
+    }
+
+    public List<Object[]> findAllOffersForCompanyOnDate(String companyName, String yearMonth){
+        return repo.findAllOffersForCompanyOnDate(companyName, yearMonth);
+    }
+
+    public Long countOffersWithoutSalaryByCompany(String companyName){
+        return repo.countOffersWithoutSalaryByCompany(companyName);
+    }
 }
