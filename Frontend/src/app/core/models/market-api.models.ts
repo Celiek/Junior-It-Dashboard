@@ -90,3 +90,31 @@ export interface RelistedOfferMonthlyDto {
   totalRecords: number;
   relistRatioPercentage: number;
 }
+
+export interface CompanyMonthlySalaryDto {
+  month: string;
+  avgSalaryMin: number | null;
+  avgSalaryMax: number | null;
+  offersWithSalaryCount: number;
+}
+
+export interface CompanyVsMarketSalaryDto {
+  month: string;
+  companyAvgMin: number | null;
+  globalAvgMin: number | null;
+  companyAvgMax: number | null;
+  globalAvgMax: number | null;
+}
+
+export interface CompanyTechDto {
+  tech: string;
+  frequency: number;
+  percentage: number; // wyliczane na froncie na podstawie totalOffers
+}
+
+export interface CompanyLocationDto {
+  city: string;
+  count: number;
+  percentage: number;
+  rawVariants: string[]; // przechowuje oryginalne nazwy (np. dzielnice/ulice) do podglądu
+}

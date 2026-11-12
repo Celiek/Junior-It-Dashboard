@@ -121,5 +121,27 @@ public class OffersController {
     public Long countOffersWithoutSalaryByCompany(String companyName){
         return service.countOffersWithoutSalaryByCompany(companyName);
     }
+
+    @GetMapping("/averageMonthlySalaryByCompany")
+    public List<Object[]> getMonthlySalaryTrendByCompany(String companyName){
+        return service.getMonthlySalaryTrendByCompany(companyName);
+    }
+
+    @GetMapping("/averageCompanySalaryOnAverageSalary")
+    public List<Object[]> compareCompanySalaryWithMarketWithoutCount(String companyName){
+        return service.compareCompanySalaryWithMarketWithoutCount(companyName);
+    }
+
+    @GetMapping("/mostPopularTechnologiesByCompany")
+    public List<Object[]> mostPopularTechnologiesInOffersByCompany(String companyName){
+        return service.mostPopularTechnologiesInOffersByCompany(companyName);
+    }
+
+    @GetMapping("/locationDistributionByCompany")
+    public List<Object[]> getLocationDistributionByCompany(String companyName){
+        return service.getLocationDistributionByCompany(companyName);
+    }
+
+
 }
 

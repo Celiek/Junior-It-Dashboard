@@ -441,15 +441,113 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
     List<Object[]> findAllOffersForCompanyOnDate(@Param("companyName") String companyName, @Param("yearMonth") String yearMonth);
 
     @Query(value = """
-            SELECT COUNT(DISTINCT jo.id)
+            SELECT COUNT(DISTINCT jo.id)\s
                 FROM job_offers jo
                 WHERE jo.company = :companyName
+                  -- Warunki na poprawny opis
+                  AND jo.description IS NOT NULL\s
+                  AND TRIM(jo.description) <> ''\s
+                  AND LOWER(TRIM(jo.description)) NOT IN ('brak opisu', 'brak', '-')
+                  -- Warunek na brak widełek w tabeli kontraktów
                   AND NOT EXISTS (
-                      SELECT 1
-                      FROM job_offer_contracts joc
-                      WHERE joc.job_offer_id = jo.id
+                      SELECT 1\s
+                      FROM job_offer_contracts joc\s
+                      WHERE joc.job_offer_id = jo.id\s
                         AND (joc.salary_min IS NOT NULL OR joc.salary_max IS NOT NULL)
                   )
             """,nativeQuery = true)
     Long countOffersWithoutSalaryByCompany(@Param("companyName")String companyName);
+
+    @Query(value = """
+    WITH months AS (
+        SELECT TO_CHAR(d, 'YYYY-MM') AS month
+        FROM GENERATE_SERIES(
+            DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '11 months',
+            DATE_TRUNC('month', CURRENT_DATE),
+            INTERVAL '1 month'
+        ) d
+    ),
+    filtered_offers AS (
+        SELECT 
+            jo.scraped_at,
+            joc.salary_min,
+            joc.salary_max,
+            joc.id AS contract_id
+        FROM job_offers jo
+        JOIN job_offer_contracts joc ON jo.id = joc.job_offer_id
+        WHERE jo.company = :companyName
+          AND (joc.salary_min IS NOT NULL OR joc.salary_max IS NOT NULL)
+    )
+    SELECT 
+        m.month,
+        ROUND(CAST(AVG(fo.salary_min) AS NUMERIC), 2) AS avg_salary_min,
+        ROUND(CAST(AVG(fo.salary_max) AS NUMERIC), 2) AS avg_salary_max,
+        COUNT(fo.contract_id) AS offers_with_salary_count
+    FROM months m
+    LEFT JOIN filtered_offers fo ON m.month = TO_CHAR(fo.scraped_at, 'YYYY-MM')
+    GROUP BY m.month
+    ORDER BY m.month ASC
+    """, nativeQuery = true)
+    List<Object[]> getMonthlySalaryTrendByCompany(@Param("companyName") String companyName);
+
+    @Query(value = """
+    WITH global_monthly_avg AS (
+        SELECT 
+            TO_CHAR(jo.scraped_at, 'YYYY-MM') AS month,
+            AVG(joc.salary_min) AS global_avg_min,
+            AVG(joc.salary_max) AS global_avg_max
+        FROM job_offers jo
+        JOIN job_offer_contracts joc ON jo.id = joc.job_offer_id
+        WHERE (joc.salary_min IS NOT NULL OR joc.salary_max IS NOT NULL)
+        GROUP BY TO_CHAR(jo.scraped_at, 'YYYY-MM')
+    ),
+    company_monthly_avg AS (
+        SELECT 
+            TO_CHAR(jo.scraped_at, 'YYYY-MM') AS month,
+            AVG(joc.salary_min) AS company_avg_min,
+            AVG(joc.salary_max) AS company_avg_max
+        FROM job_offers jo
+        JOIN job_offer_contracts joc ON jo.id = joc.job_offer_id
+        WHERE jo.company = :companyName
+          AND (joc.salary_min IS NOT NULL OR joc.salary_max IS NOT NULL)
+        GROUP BY TO_CHAR(jo.scraped_at, 'YYYY-MM')
+    )
+    SELECT 
+        g.month,
+        ROUND(CAST(c.company_avg_min AS NUMERIC), 2),
+        ROUND(CAST(g.global_avg_min AS NUMERIC), 2),
+        ROUND(CAST(c.company_avg_max AS NUMERIC), 2),
+        ROUND(CAST(g.global_avg_max AS NUMERIC), 2)
+    FROM global_monthly_avg g
+    LEFT JOIN company_monthly_avg c ON g.month = c.month
+    WHERE g.month >= TO_CHAR(CURRENT_DATE - INTERVAL '11 months', 'YYYY-MM')
+    ORDER BY g.month ASC
+    """, nativeQuery = true)
+    List<Object[]> compareCompanySalaryWithMarketWithoutCount(@Param("companyName") String companyName);
+
+    @Query(value = """
+            SELECT\s
+                unnest(technologies) AS tech,
+                COUNT(*) AS frequency
+            FROM job_offers
+            WHERE company =:companyName
+              AND technologies IS NOT NULL
+            GROUP BY 1
+            ORDER BY frequency DESC
+            LIMIT 5;
+            """, nativeQuery = true)
+    List<Object[]> mostPopularTechnologiesInOffersByCompany(@Param("companyName")String comapnyName);
+
+    @Query(value = """
+            SELECT\s
+                location,
+                COUNT(*) AS offer_count
+            FROM job_offers
+            WHERE company = :companyName
+              AND location IS NOT NULL
+              AND TRIM(location) <> ''
+            GROUP BY location
+            ORDER BY offer_count DESC;
+            """, nativeQuery = true)
+    List<Object[]> getLocationDistributionByCompany(@Param("companyName")String companyName);
 }

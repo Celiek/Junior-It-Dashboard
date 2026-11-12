@@ -154,4 +154,21 @@ public class OfferService {
     public Long countOffersWithoutSalaryByCompany(String companyName){
         return repo.countOffersWithoutSalaryByCompany(companyName);
     }
+
+    public List<Object[]> getMonthlySalaryTrendByCompany(String companyName){
+        return repo.getMonthlySalaryTrendByCompany(companyName);
+    }
+
+    public List<Object[]> compareCompanySalaryWithMarketWithoutCount(String companyName){
+        return repo.compareCompanySalaryWithMarketWithoutCount(companyName);
+    }
+
+    public List<Object[]> mostPopularTechnologiesInOffersByCompany(String companyName){
+        return repo.mostPopularTechnologiesInOffersByCompany(companyName);
+    }
+
+    public List<Object[]> getLocationDistributionByCompany(String companyName){
+        return repo.getLocationDistributionByCompany(companyName);
+    }
+
 }

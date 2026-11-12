@@ -89,7 +89,7 @@ import {
             Analiza Rynku Ofert Pracy IT
           </h1>
           <p class="text-md text-slate-400 dark:text-slate-400 leading-relaxed max-w-3xl">
-            Serwis agreguje ogłoszenia rynku pracy IT w Polsce dla juniorów w wielu kategoriach rynku (programowanie, data science, QA itd.). Dane są pobierane z Pracuj.pl i theProtocol.it, aktualizowane codziennie i prezentują aktualny stan rynku pracy. Więcej informacji o projekcie i metodach agregacji danych znajdziesz w zakładce <a routerLink="/about" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">O projekcie</a>.
+            Serwis agreguje ogłoszenia rynku pracy IT w Polsce dla juniorów w wielu kategoriach rynku (programowanie, data science, QA itd.). Dane są pobierane z Pracuj.pl i theProtocol.it, aktualizowane codziennie i prezentują aktualny stan rynku pracy. Strona powstała  w celu pokazania realnego rynku pracy dla osób wybierających swoją ścieżkę kaeiery(studentów a także osób chcących zacząć w It ale nie wiedzą gdzie zacząć). Więcej informacji o projekcie i metodach agregacji danych znajdziesz w zakładce <a routerLink="/about" class="text-indigo-600 dark:text-indigo-400 font-semibold hover:underline">O projekcie</a>.
           </p>
         </div>
 

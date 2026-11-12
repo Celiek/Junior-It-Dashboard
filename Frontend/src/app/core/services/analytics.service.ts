@@ -12,7 +12,10 @@ import {
   CompanyDetailsData,
   SpringPage, 
   OfferSummaryDTO,
-  RelistedOfferMonthlyDto
+  RelistedOfferMonthlyDto,
+  CompanyMonthlySalaryDto,
+  CompanyVsMarketSalaryDto,
+  CompanyLocationDto
 } from '../models/market-api.models';
 
 export interface DashboardApiResponse {
@@ -173,4 +176,107 @@ export class AnalyticsService {
       })
     );
   }
+
+  getOffersWithoutSalaryCount(companyName: string): Observable<number> {
+    const params = new HttpParams().set('companyName', companyName);
+    return this.http.get<number>(`${this.baseUrl}/offerWithoutSalary`, { params });
+  }
+
+  getAverageMonthlySalaryByCompany(companyName: string): Observable<CompanyMonthlySalaryDto[]> {
+  const params = new HttpParams().set('companyName', companyName);
+  return this.http.get<any[][]>(`${this.baseUrl}/averageMonthlySalaryByCompany`, { params }).pipe(
+    map(rows => (rows || []).map(r => ({
+      month: String(r[0]),
+      avgSalaryMin: r[1] !== null ? Number(r[1]) : null,
+      avgSalaryMax: r[2] !== null ? Number(r[2]) : null,
+      offersWithSalaryCount: Number(r[3]) || 0
+    })))
+  );
+}
+
+  compareCompanySalaryWithMarket(companyName: string): Observable<CompanyVsMarketSalaryDto[]> {
+    const params = new HttpParams().set('companyName', companyName);
+    return this.http.get<any[][]>(`${this.baseUrl}/averageCompanySalaryOnAverageSalary`, { params }).pipe(
+      map(rows => (rows || []).map(r => ({
+        month: String(r[0]),
+        companyAvgMin: r[1] !== null ? Number(r[1]) : null,
+        globalAvgMin: r[2] !== null ? Number(r[2]) : null,
+        companyAvgMax: r[3] !== null ? Number(r[3]) : null,
+        globalAvgMax: r[4] !== null ? Number(r[4]) : null
+      })))
+    );
+  }
+
+  getMostPopularTechnologiesByCompany(companyName: string): Observable<{ tech: string; frequency: number }[]> {
+    const params = new HttpParams().set('companyName', companyName);
+    return this.http.get<any[][]>(`${this.baseUrl}/mostPopularTechnologiesByCompany`, { params }).pipe(
+      map(rows => (rows || []).map(r => ({
+        tech: String(r[0]),
+        frequency: Number(r[1]) || 0
+      })))
+    );
+  }
+
+  getLocationDistributionByCompany(companyName: string): Observable<CompanyLocationDto[]> {
+  const params = new HttpParams().set('companyName', companyName);
+  return this.http.get<any[][]>(`${this.baseUrl}/locationDistributionByCompany`, { params }).pipe(
+    map(rows => this.normalizeAndAggregateLocations(rows || []))
+  );
+}
+
+private normalizeAndAggregateLocations(rows: any[][]): CompanyLocationDto[] {
+  const cityMap = new Map<string, { count: number; variants: Set<string> }>();
+  let total = 0;
+
+  rows.forEach(([rawLoc, rawCount]) => {
+    const label = String(rawLoc || 'Nieokreślona').trim();
+    const count = Number(rawCount) || 0;
+    total += count;
+
+    const normalizedCity = this.extractMainCity(label);
+    const existing = cityMap.get(normalizedCity);
+
+    if (existing) {
+      existing.count += count;
+      existing.variants.add(label);
+    } else {
+      cityMap.set(normalizedCity, {
+        count,
+        variants: new Set([label])
+      });
+    }
+  });
+
+  return Array.from(cityMap.entries())
+    .map(([city, data]) => ({
+      city,
+      count: data.count,
+      percentage: total > 0 ? Math.round((data.count / total) * 100) : 0,
+      rawVariants: Array.from(data.variants)
+    }))
+    .sort((a, b) => b.count - a.count);
+}
+
+private extractMainCity(raw: string): string {
+  const lower = raw.toLowerCase();
+
+  if (lower.includes('remote') || lower.includes('zdaln')) return 'Remote (Zdalnie)';
+  if (lower.includes('warszaw') || lower.includes('warsaw')) return 'Warszawa';
+  if (lower.includes('poznań') || lower.includes('poznan')) return 'Poznań';
+  if (lower.includes('kraków') || lower.includes('krakow')) return 'Kraków';
+  if (lower.includes('wrocław') || lower.includes('wroclaw')) return 'Wrocław';
+  if (lower.includes('gdańsk') || lower.includes('gdansk') || lower.includes('trójmiasto')) return 'Gdańsk';
+  if (lower.includes('katowic')) return 'Katowice';
+  if (lower.includes('łódź') || lower.includes('lodz')) return 'Łódź';
+  if (lower.includes('toruń') || lower.includes('torun')) return 'Toruń';
+  if (lower.includes('szczecin')) return 'Szczecin';
+  if (lower.includes('lublin')) return 'Lublin';
+  if (lower.includes('białystok') || lower.includes('bialystok')) return 'Białystok';
+  if (lower.includes('bydgoszcz')) return 'Bydgoszcz';
+  if (lower.includes('rzeszów') || lower.includes('rzeszow')) return 'Rzeszów';
+
+  // Fallback: bierze pierwszy człon przed przecinkiem
+  return raw.split(',')[0].trim();
+}
+
 }
