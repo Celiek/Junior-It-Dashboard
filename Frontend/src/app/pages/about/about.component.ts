@@ -30,6 +30,11 @@ import { ThemeService } from '../../core/services/theme.service';
                  class="nav-item">
                 O projekcie
               </a>
+              <a routerLink="/companies"
+                 routerLinkActive="active"
+                 class="nav-item">
+                Pracodawcy
+              </a>
             </div>
           </div>
 

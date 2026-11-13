@@ -1,6 +1,8 @@
 package com.junior.charts.controller;
 
 import com.junior.charts.dto.*;
+import com.junior.charts.dto.TechDTO.TechComboDTO;
+import com.junior.charts.dto.TechDTO.TechCompanionDTO;
 import com.junior.charts.dto.offer.JobSummaryDTO;
 import com.junior.charts.dto.offer.OfferSummaryDTO;
 import com.junior.charts.service.OfferService;
@@ -142,6 +144,15 @@ public class OffersController {
         return service.getLocationDistributionByCompany(companyName);
     }
 
+    @GetMapping("/getAllTechnologies")
+    public List<TechComboDTO> getTopTechnologyCombinations(int combinationSize, int limit){
+        return service.getTopTechnologyCombinations(combinationSize, limit);
+    }
+
+    @GetMapping("/topTechnoForTechnology")
+    public List<TechCompanionDTO> getTopCompanionsForTechnology(String targetTech, int limit){
+        return service.getTopCompanionsForTechnology(targetTech, limit);
+    }
 
 }
 

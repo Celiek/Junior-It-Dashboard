@@ -550,4 +550,11 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
             ORDER BY offer_count DESC;
             """, nativeQuery = true)
     List<Object[]> getLocationDistributionByCompany(@Param("companyName")String companyName);
+
+    @Query(value = """
+    SELECT technologies 
+    FROM job_offers 
+    WHERE technologies IS NOT NULL
+    """, nativeQuery = true)
+    List<String[]> findAllTechnologiesArrays();
 }

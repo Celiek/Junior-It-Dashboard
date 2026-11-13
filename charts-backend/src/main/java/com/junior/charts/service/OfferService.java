@@ -1,11 +1,14 @@
 package com.junior.charts.service;
 
 import com.junior.charts.dto.*;
+import com.junior.charts.dto.TechDTO.TechComboDTO;
+import com.junior.charts.dto.TechDTO.TechCompanionDTO;
 import com.junior.charts.dto.offer.JobSummaryDTO;
 import com.junior.charts.dto.offer.OfferSummaryDTO;
 import com.junior.charts.entity.Offers;
 import com.junior.charts.projection.CompanyLocationProjection;
 import com.junior.charts.repo.OffersRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,10 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -169,6 +169,93 @@ public class OfferService {
 
     public List<Object[]> getLocationDistributionByCompany(String companyName){
         return repo.getLocationDistributionByCompany(companyName);
+    }
+
+    @Transactional()
+    public List<TechComboDTO> getTopTechnologyCombinations(int combinationSize, int limit) {
+        // 1. Pobieramy surowe tablice z bazy
+        List<String[]> allRows = repo.findAllTechnologiesArrays();
+
+        Map<List<String>, Long> comboCounts = new HashMap<>();
+
+        // 2. Przetwarzamy każdą ofertę w pamięci
+        for (String[] row : allRows) {
+            if (row == null) continue;
+
+            // Oczyszczamy, usuwamy duplikaty i sortujemy technologie w ofercie
+            List<String> cleanTechs = Arrays.stream(row)
+                    .filter(t -> t != null && !t.isBlank())
+                    .map(String::trim)
+                    .distinct()
+                    .sorted()
+                    .toList();
+
+            if (cleanTechs.size() < combinationSize) continue;
+
+            // Generujemy kombinacje (np. pary, trójki lub czwórki)
+            generateCombinations(cleanTechs, combinationSize, 0, new ArrayList<>(), comboCounts);
+        }
+
+        // 3. Sortujemy po częstotliwości i ograniczamy wynik do 'limit'
+        return comboCounts.entrySet().stream()
+                .sorted(Map.Entry.<List<String>, Long>comparingByValue().reversed())
+                .limit(limit)
+                .map(entry -> new TechComboDTO(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    // Rekurencyjny generator kombinacji (n-elementowych)
+    private void generateCombinations(List<String> techs, int k, int start, List<String> current, Map<List<String>, Long> result) {
+        if (current.size() == k) {
+            result.merge(new ArrayList<>(current), 1L, Long::sum);
+            return;
+        }
+        for (int i = start; i < techs.size(); i++) {
+            current.add(techs.get(i));
+            generateCombinations(techs, k, i + 1, current, result);
+            current.remove(current.size() - 1);
+        }
+    }
+
+    @Transactional()
+    public List<TechCompanionDTO> getTopCompanionsForTechnology(String targetTech, int limit) {
+        // 1. Pobieramy surowe tablice z bazy jednym prostym zapytaniem
+        List<String[]> allRows = repo.findAllTechnologiesArrays();
+
+        Map<String, Long> companionCounts = new HashMap<>();
+        String normalizedTarget = targetTech.trim().toLowerCase();
+
+        // 2. Przetwarzamy oferty w pamięci
+        for (String[] row : allRows) {
+            if (row == null) continue;
+
+            // Oczyszczamy i unikalizujemy technologie w danej ofercie
+            List<String> cleanTechs = Arrays.stream(row)
+                    .filter(t -> t != null && !t.isBlank())
+                    .map(String::trim)
+                    .distinct()
+                    .toList();
+
+            // Sprawdzamy, czy oferta zawiera szukaną technologię (ignorując wielkość liter)
+            boolean containsTarget = cleanTechs.stream()
+                    .anyMatch(t -> t.equalsIgnoreCase(normalizedTarget));
+
+            if (containsTarget) {
+                // Zliczamy wszystkie *inne* technologie z tej samej oferty
+                for (String tech : cleanTechs) {
+                    if (!tech.equalsIgnoreCase(normalizedTarget)) {
+                        companionCounts.merge(tech, 1L, Long::sum);
+                    }
+                }
+            }
+        }
+
+        // 3. Sortujemy po liczbie wystąpień i zwracamy top 'limit'
+        return companionCounts.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(limit)
+                .map(entry -> new TechCompanionDTO(entry.getKey(), entry.getValue()))
+                .toList();
     }
 
 }
