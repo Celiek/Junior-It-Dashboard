@@ -13,14 +13,14 @@ import { CommonModule } from '@angular/common';
 import { BaseChartDirective } from 'ng2-charts';
 import { Chart, ChartOptions, ChartData, DoughnutController, ArcElement, Tooltip, Legend } from 'chart.js';
 import { CompanyDetailsData } from '../../../core/models/market-api.models';
+import { RouterModule } from '@angular/router';
 
-// Rejestracja wykresu pierścieniowego w Chart.js
 Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
 
 @Component({
   selector: 'app-company-drawer',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective],
+  imports: [CommonModule, BaseChartDirective, RouterModule],
   template: `
     <ng-container *ngIf="isOpen">
       <!-- Tło blokujące i przyciemniające -->
@@ -31,11 +31,22 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
         
         <!-- NAGŁÓWEK -->
         <div class="drawer-header">
-          <div>
+          <div class="header-left-info">
             <span class="header-badge">Szczegóły pracodawcy</span>
             <h3 class="header-title">{{ companyName }}</h3>
           </div>
-          <button type="button" (click)="close()" class="close-btn" title="Zamknij panel">✕</button>
+
+          <div class="header-actions">
+            <a *ngIf="companyName"
+               [routerLink]="['/companies']"
+               [queryParams]="{ company: companyName }"
+               (click)="close()"
+               class="full-profile-btn">
+              <span>Pełny profil</span>
+              <span>&rarr;</span>
+            </a>
+            <button type="button" (click)="close()" class="close-btn" title="Zamknij panel">✕</button>
+          </div>
         </div>
 
         <!-- LOADER -->
@@ -51,7 +62,6 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
           <div>
             <h4 class="section-title">Wolumen i źródła ogłoszeń</h4>
             <div class="stats-grid">
-              <!-- Wszystkie w roku -->
               <div class="stat-card">
                 <span class="stat-label">Wszystkie w tym roku</span>
                 <span class="stat-value">{{ details.totalOffersThisYear | number }}</span>
@@ -60,7 +70,6 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
                 </div>
               </div>
 
-              <!-- Karty per portal -->
               <div *ngFor="let src of details.sources" class="stat-card">
                 <div class="stat-card-header">
                   <span class="stat-source-name">{{ src.source }}</span>
@@ -78,7 +87,6 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
             <h4 class="section-title">Rozkład ofert według kategorii</h4>
             
             <div class="category-layout" *ngIf="hasChartData; else noCategories">
-              <!-- Wykres Doughnut z wyłączoną wbudowaną legendą Chart.js -->
               <div class="chart-wrapper">
                 <canvas baseChart
                   [data]="pieChartData"
@@ -87,7 +95,6 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
                 </canvas>
               </div>
 
-              <!-- Czytelna, ostylowana lista HTML -->
               <div class="category-list">
                 <div *ngFor="let cat of formattedCategories; let i = index" class="category-item">
                   <div class="category-item-left">
@@ -144,7 +151,15 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
 
         <!-- STOPKA -->
         <div class="drawer-footer">
-          <!-- Footer --> 
+          <button type="button" (click)="close()" class="footer-btn">Zamknij</button>
+          <a *ngIf="companyName"
+             [routerLink]="['/companies']"
+             [queryParams]="{ company: companyName }"
+             (click)="close()"
+             class="full-profile-btn">
+            <span>Analiza zarobków, stacku i relistingu</span>
+            <span>&rarr;</span>
+          </a>
         </div>
 
       </aside>
@@ -195,6 +210,18 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .header-left-info {
+      min-width: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
       flex-shrink: 0;
     }
 
@@ -211,6 +238,29 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
       font-weight: 700;
       margin-top: 0.25rem;
       color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .full-profile-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.55rem 1rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #ffffff;
+      background-color: #4f46e5;
+      border: 1px solid #6366f1;
+      border-radius: 0.55rem;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .full-profile-btn:hover {
+      background-color: #6366f1;
     }
 
     .close-btn {
@@ -502,18 +552,20 @@ Chart.register(DoughnutController, ArcElement, Tooltip, Legend);
       border-top: 1px solid #1e293b;
       background: #020617;
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
       flex-shrink: 0;
     }
 
     .footer-btn {
-      padding: 0.5rem 1.25rem;
-      font-size: 0.75rem;
+      padding: 0.55rem 1.25rem;
+      font-size: 0.8rem;
       font-weight: 600;
       background: #1e293b;
       color: #e2e8f0;
       border: 1px solid #334155;
-      border-radius: 0.5rem;
+      border-radius: 0.55rem;
       cursor: pointer;
       transition: background 0.15s;
     }

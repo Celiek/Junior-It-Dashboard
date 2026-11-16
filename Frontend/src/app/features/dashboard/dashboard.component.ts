@@ -32,7 +32,8 @@ import {
     OverviewStatsComponent,
     CompanyOffersChartsComponent,
     CompanyStackedChartComponent,
-    CompanyDrawerComponent
+    CompanyDrawerComponent,
+    RouterModule
   ],
   template: `
     <div class="dashboard-page min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
@@ -64,7 +65,13 @@ import {
                  [routerLinkActiveOptions]="{ exact: true }"
                  class="nav-item">
                 Szczegóły firmy
-              </a>  
+              </a>
+              <a routerLink = "/technologies"
+                  routerLinkActive="active" 
+                 [routerLinkActiveOptions]="{ exact: true }"
+                 class="nav-item">
+                Technologie
+              </a>
             </div>
           </div>
 

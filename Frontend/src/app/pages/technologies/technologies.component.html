@@ -1,0 +1,197 @@
+<div
+    class="tech-page min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col justify-between">
+
+    <!-- NAVBAR -->
+    <nav class="app-navbar">
+        <div class="navbar-container">
+            <div class="navbar-left">
+                <a routerLink="/" class="navbar-brand">
+                    Junior IT <span class="brand-accent">Analytics</span>
+                </a>
+
+                <div class="navbar-links">
+                    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+                        class="nav-item">
+                        Dashboard
+                    </a>
+                    <a routerLink="/companies" routerLinkActive="active" class="nav-item">
+                        Pracodawcy
+                    </a>
+                    <a routerLink="/technologies" routerLinkActive="active" class="nav-item">
+                        Technologie
+                    </a>
+                    <a routerLink="/about" routerLinkActive="active" class="nav-item">
+                        O projekcie
+                    </a>
+                </div>
+            </div>
+
+            <button type="button" (click)="themeService.toggleTheme()" class="theme-toggle-btn" title="Przełącz motyw">
+                <span class="theme-icon">&#9680;</span>
+                <span class="theme-label">Tryb ciemny / jasny</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- GŁÓWNA ZAWARTOŚĆ -->
+    <main class="content-container">
+
+        <!-- SEKCJA WYSZUKIWARKI I SZYBKICH WYBORÓW -->
+        <section class="search-card">
+            <span class="section-badge">Eksplorator Stacku</span>
+            <h1 class="card-main-title">Powiązania Technologii</h1>
+            <p class="card-description">
+                Sprawdź, jakie narzędzia i frameworki najczęściej występują ze sobą w parze w ogłoszeniach o pracę w IT. 
+            </p>
+
+            <div class="search-box-wrapper" #searchContainer>
+                <div class="input-relative">
+                    <span class="search-icon">&#128269;</span>
+                    <input type="text" [formControl]="searchControl" (focus)="onInputFocus()"
+                        (keydown.enter)="onSearchSubmit()"
+                        placeholder="Wpisz technologię (np. Java, Python, Docker, React)..." class="search-input" />
+
+                    <button *ngIf="searchControl.value" type="button" (click)="clearSearch()" class="clear-btn"
+                        title="Wyczyść">
+                        &#10005;
+                    </button>
+                </div>
+
+                <!-- Dropdown z podpowiedziami -->
+                <div *ngIf="isDropdownOpen && filteredTechnologies.length > 0" class="suggestions-dropdown">
+                    <div class="dropdown-header">Dostępne technologie</div>
+                    <ul class="suggestions-list">
+                        <li *ngFor="let tech of filteredTechnologies" (click)="selectTechnology(tech)"
+                            class="suggestion-item">
+                            <span class="tech-option-name">{{ tech }}</span>
+                            <span class="select-badge">Analizuj &rarr;</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Szybkie pigułki -->
+            <div class="quick-picks-bar">
+                <span class="quick-label">Popularne:</span>
+                <button *ngFor="let qp of quickPickTechnologies" type="button" (click)="selectTechnology(qp)"
+                    class="quick-pill" [class.active]="selectedTech()?.toLowerCase() === qp.toLowerCase()">
+                    {{ qp }}
+                </button>
+            </div>
+        </section>
+
+        <!-- SIATKA 2-KOLUMNOWA: POWIĄZANIA WYBRANEJ TECHNOLOGII VS TOP KOMBINACJE RYNKU -->
+        <section class="tech-two-col-grid">
+
+            <!-- LEWA KOLUMNA: WYKRES WSPÓŁWYSTĘPOWANIA -->
+            <div class="analytics-card">
+                <div class="card-header-flex">
+                    <div>
+                        <span class="sub-header-title">ANALIZA CO-OCCURRENCE</span>
+                        <h2 class="card-title-lg">
+                            Co najczęściej łączy się z: <span class="text-indigo-400">{{ selectedTech() || '...'
+                                }}</span>
+                        </h2>
+                    </div>
+                    <span *ngIf="companions.length > 0" class="badge-info">
+                        Top {{ companions.length }} powiązań
+                    </span>
+                </div>
+
+                <div *ngIf="isLoadingCompanions" class="loader-box">
+                    <div class="spinner"></div>
+                    <p>Analizowanie powiązań w ogłoszeniach...</p>
+                </div>
+
+                <ng-container *ngIf="!isLoadingCompanions && companions.length > 0">
+                    <!-- Poziomy wykres słupkowy -->
+                    <div class="bar-chart-wrapper">
+                        <canvas #companionsChart baseChart [data]="barChartData" [options]="barChartOptions"
+                            [type]="'bar'">
+                        </canvas>
+                    </div>
+
+                    <!-- Lista szczegółowa z możliwością przejścia do powiązanej technologii -->
+                    <div class="companions-mini-grid">
+                        <div *ngFor="let comp of companions; let idx = index"
+                            (click)="selectTechnology(comp.technology)" class="companion-item-btn"
+                            title="Kliknij, aby przeanalizować powiązania dla {{ comp.technology }}">
+                            <div class="comp-left">
+                                <span class="comp-rank">#{{ idx + 1 }}</span>
+                                <span class="comp-name">{{ comp.technology }}</span>
+                            </div>
+                            <div class="comp-right">
+                                <span class="comp-pct">{{ comp.percentage }}%</span>
+                                <span class="comp-count">({{ comp.count }})</span>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <div *ngIf="!isLoadingCompanions && companions.length === 0 && selectedTech()" class="empty-mini-box">
+                    Brak wystarczających danych o współwystępowaniu dla technologii <strong>{{ selectedTech()
+                        }}</strong>.
+                </div>
+            </div>
+
+            <!-- PRAWA KOLUMNA: NAJPOPULARNIEJSZE GOTOWE ZESTAWY (KOMBINACJE) -->
+            <div class="analytics-card">
+                <div class="card-header-flex">
+                    <div>
+                        <span class="sub-header-title">GOTOWE STACKI RYNKOWE</span>
+                        <h2 class="card-title-lg">Najczęstsze kombinacje</h2>
+                    </div>
+
+                    <!-- Przełącznik rozmiaru kombinacji (2, 3, 4 technologie razem) -->
+                    <div class="combo-size-switcher">
+                        <button *ngFor="let size of [2, 3, 4]" type="button" (click)="loadCombinations(size)"
+                            class="size-btn" [class.active]="selectedComboSize === size">
+                            {{ size }} tech
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="isLoadingCombos" class="loader-box">
+                    <div class="spinner"></div>
+                    <p>Wyliczanie najczęstszych zestawów...</p>
+                </div>
+
+                <div *ngIf="!isLoadingCombos && topCombinations.length > 0" class="combos-list">
+                    <div *ngFor="let combo of topCombinations; let idx = index" class="combo-row">
+                        <div class="combo-tags-group">
+                            <span class="combo-index">{{ idx + 1 }}.</span>
+                            <div class="combo-pills">
+                                <button *ngFor="let t of combo.technologies" type="button" (click)="selectTechnology(t)"
+                                    class="combo-tech-tag"
+                                    [class.highlighted]="t.toLowerCase() === selectedTech()?.toLowerCase()">
+                                    {{ t }}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="combo-count-badge">
+                            {{ combo.count }} <span class="text-xs text-slate-400 font-normal">ofert</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="!isLoadingCombos && topCombinations.length === 0" class="empty-mini-box">
+                    Brak danych o kombinacjach dla wybranego rozmiaru.
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="app-footer">
+        <div class="footer-container">
+            <p class="footer-main">
+                <strong>Junior IT Analytics</strong> &bull; Niezależny projekt analityczny do badania trendów rynkowych
+                w Polsce.
+            </p>
+        </div>
+    </footer>
+
+</div>

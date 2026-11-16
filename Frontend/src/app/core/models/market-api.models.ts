@@ -116,5 +116,25 @@ export interface CompanyLocationDto {
   city: string;
   count: number;
   percentage: number;
-  rawVariants: string[]; // przechowuje oryginalne nazwy (np. dzielnice/ulice) do podglądu
+  rawVariants: string[]; 
+}
+
+
+export interface TechComboDTO {
+  technologies: string[];
+  count: number;
+  percentage?: number; // opcjonalnie, jeśli DTO je posiada
+}
+
+export interface TechCompanionDTO {
+  technology: string; 
+  count: number;
+  percentage: number;
+}
+
+export interface ContractSalaryTrendItem {
+  averageSalary: number;
+  contractType: string;
+  month: string;
+  offersCount: number;
 }

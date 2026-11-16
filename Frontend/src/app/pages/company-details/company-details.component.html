@@ -154,44 +154,58 @@
                     <div class="analytics-card">
                         <div class="card-header-flex">
                             <div>
-                                <span class="sub-header-title">ANALIZA WYNAGRODZEŃ (12 MIES.)</span>
-                                <h3 class="card-title-sm">Widełki vs Średnia Rynkowa</h3>
+                                <span class="sub-header-title">ANALIZA WYNAGRODZEŃ WG UMOWY (12 MIES.)</span>
+                                <h3 class="card-title-sm">Średnie stawki: B2B vs UoP vs UZ</h3>
                             </div>
-
-                            <div *ngIf="salaryMarketBenchmark.hasData" class="benchmark-pill"
-                                [class.benchmark-up]="salaryMarketBenchmark.diffPercent > 0"
-                                [class.benchmark-down]="salaryMarketBenchmark.diffPercent < 0"
-                                [class.benchmark-neutral]="salaryMarketBenchmark.diffPercent === 0">
-                                <span *ngIf="salaryMarketBenchmark.diffPercent > 0">▲ +{{
-                                    salaryMarketBenchmark.diffPercent }}% vs rynek</span>
-                                <span *ngIf="salaryMarketBenchmark.diffPercent < 0">▼ {{
-                                    salaryMarketBenchmark.diffPercent }}% vs rynek</span>
-                                <span *ngIf="salaryMarketBenchmark.diffPercent === 0">● W normie rynkowej</span>
+                    
+                            <!-- Przełącznik Miesięczne / Godzinowe -->
+                            <div *ngIf="rawContractSalaries.length > 0" class="unit-switcher">
+                                <button type="button" (click)="setSalaryUnitMode('monthly')" [class.active]="salaryUnitMode === 'monthly'"
+                                    [disabled]="!hasMonthlyRates" class="unit-btn">
+                                    Miesięczne (PLN)
+                                </button>
+                                <button type="button" (click)="setSalaryUnitMode('hourly')" [class.active]="salaryUnitMode === 'hourly'"
+                                    [disabled]="!hasHourlyRates" class="unit-btn">
+                                    Godzinowe (zł/h)
+                                </button>
                             </div>
                         </div>
-
-                        <div *ngIf="companyOverallSalaryRange.hasData" class="salary-summary-strip">
+                    
+                        <!-- Kafelki średnich dla poszczególnych umów -->
+                        <div *ngIf="!isLoadingSalaries && rawContractSalaries.length > 0" class="salary-summary-strip">
                             <div class="salary-stat-box">
-                                <span class="label">Średnie widełki firmy:</span>
-                                <span class="value text-indigo-400">
-                                    {{ companyOverallSalaryRange.min | number:'1.0-0' }} – {{
-                                    companyOverallSalaryRange.max | number:'1.0-0' }} PLN
+                                <span class="label">Kontrakt B2B:</span>
+                                <span class="value text-cyan-400">
+                                    {{ contractAveragesSummary.b2b !== null ? (contractAveragesSummary.b2b | number:'1.0-0') + ' ' +
+                                    contractAveragesSummary.unit : 'Brak' }}
                                 </span>
                             </div>
-                            <div *ngIf="salaryMarketBenchmark.hasData" class="salary-stat-box">
-                                <span class="label">Średni punkt rynku:</span>
-                                <span class="value text-slate-300">{{ salaryMarketBenchmark.marketAvg | number:'1.0-0'
-                                    }} PLN</span>
+                    
+                            <div class="salary-stat-box">
+                                <span class="label">Umowa o Pracę:</span>
+                                <span class="value text-indigo-400">
+                                    {{ contractAveragesSummary.uop !== null ? (contractAveragesSummary.uop | number:'1.0-0') + ' ' +
+                                    contractAveragesSummary.unit : 'Brak' }}
+                                </span>
+                            </div>
+                    
+                            <div class="salary-stat-box">
+                                <span class="label">UZ / Staż / Inne:</span>
+                                <span class="value text-amber-400">
+                                    {{ contractAveragesSummary.uz !== null ? (contractAveragesSummary.uz | number:'1.0-0') + ' ' +
+                                    contractAveragesSummary.unit : 'Brak' }}
+                                </span>
                             </div>
                         </div>
-
-                        <div *ngIf="!isLoadingSalaries && marketComparisonData.length > 0" class="line-chart-box">
-                            <canvas #salaryChart baseChart [data]="salaryComparisonChartData"
-                                [options]="salaryComparisonChartOptions" [type]="'line'">
+                    
+                        <!-- Wykres liniowy 3 serii -->
+                        <div *ngIf="!isLoadingSalaries && rawContractSalaries.length > 0" class="line-chart-box">
+                            <canvas #salaryChart baseChart [data]="salaryComparisonChartData" [options]="salaryComparisonChartOptions"
+                                [type]="'line'">
                             </canvas>
                         </div>
-
-                        <div *ngIf="!isLoadingSalaries && !companyOverallSalaryRange.hasData" class="empty-mini-box">
+                    
+                        <div *ngIf="!isLoadingSalaries && rawContractSalaries.length === 0" class="empty-mini-box">
                             Firma nie udostępniła danych o widełkach płacowych w ostatnich 12 miesiącach.
                         </div>
                     </div>

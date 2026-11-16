@@ -9,7 +9,7 @@ import {
   ViewChild 
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute, Router } from '@angular/router';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
@@ -24,7 +24,8 @@ import {
   CompanyMonthlySalaryDto,
   CompanyVsMarketSalaryDto,
   CompanyTechDto,
-  CompanyLocationDto
+  CompanyLocationDto,
+  ContractSalaryTrendItem
 } from '../../core/models/market-api.models';
 
 @Component({
@@ -39,9 +40,11 @@ export class CompanyDetailsComponent implements OnInit {
   private analyticsService = inject(AnalyticsService);
   private elementRef = inject(ElementRef);
   private cdr = inject(ChangeDetectorRef);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
-  @ViewChild('donutChart') donutChart?: BaseChartDirective;
-  @ViewChild('salaryChart') salaryChart?: BaseChartDirective;
+  @ViewChild('donutChart', { read: BaseChartDirective }) donutChart?: BaseChartDirective;
+  @ViewChild('salaryChart', { read: BaseChartDirective }) salaryChart?: BaseChartDirective;
 
   searchControl = new FormControl('');
   allCompanies: string[] = [];
@@ -85,6 +88,11 @@ export class CompanyDetailsComponent implements OnInit {
 
   // Modal opisu
   selectedOfferForModal: OfferSummaryDTO | null = null;
+
+  rawContractSalaries: ContractSalaryTrendItem[] = [];
+  salaryUnitMode: 'monthly' | 'hourly' = 'monthly';
+  hasHourlyRates = false;
+  hasMonthlyRates = false;
 
   private palette = [
     '#6366f1', '#3b82f6', '#06b6d4', '#10b981', '#f59e0b',
@@ -179,6 +187,13 @@ export class CompanyDetailsComponent implements OnInit {
       error: (err) => console.error('Błąd pobierania listy firm:', err)
     });
 
+    this.route.queryParamMap.subscribe(params => {
+      const companyFromUrl = params.get('company')?.trim();
+      if (companyFromUrl && companyFromUrl !== this.selectedCompany()) {
+        this.loadDataForCompany(companyFromUrl);
+      }
+    });
+
     this.searchControl.valueChanges.pipe(
       debounceTime(150),
       distinctUntilChanged()
@@ -210,6 +225,15 @@ export class CompanyDetailsComponent implements OnInit {
   }
 
   selectCompany(company: string): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { company },
+      queryParamsHandling: 'merge'
+    });
+    this.loadDataForCompany(company);
+  }
+
+  private loadDataForCompany(company: string): void {
     this.selectedCompany.set(company);
     this.searchControl.setValue(company, { emitEvent: false });
     this.isDropdownOpen = false;
@@ -300,74 +324,161 @@ export class CompanyDetailsComponent implements OnInit {
     }
   }
 
-  loadSalaryMetrics(companyName: string): void {
-    this.isLoadingSalaries = true;
-    this.cdr.detectChanges();
+loadSalaryMetrics(companyName: string): void {
+  this.isLoadingSalaries = true;
+  this.rawContractSalaries = [];
+  this.cdr.detectChanges();
 
-    this.analyticsService.compareCompanySalaryWithMarket(companyName).subscribe({
-      next: (data) => {
-        this.marketComparisonData = data;
-        this.buildSalaryComparisonChart(data);
-        this.isLoadingSalaries = false;
-        this.cdr.detectChanges();
-        setTimeout(() => this.salaryChart?.update(), 50);
-      },
-      error: (err) => {
-        console.error('Błąd pobierania porównania płac:', err);
-        this.isLoadingSalaries = false;
-        this.cdr.detectChanges();
-      }
-    });
+  this.analyticsService.getCompanySalaryByContract(companyName).subscribe({
+    next: (items) => {
+      this.rawContractSalaries = items;
+      this.detectAvailableSalaryUnits(items);
+      this.buildContractSalaryChart();
+      this.isLoadingSalaries = false;
+      this.cdr.detectChanges();
+      setTimeout(() => this.salaryChart?.update(), 50);
+    },
+    error: (err) => {
+      console.error('Błąd pobierania stawek wg umów:', err);
+      this.isLoadingSalaries = false;
+      this.cdr.detectChanges();
+    }
+  });
+}
 
-    this.analyticsService.getAverageMonthlySalaryByCompany(companyName).subscribe({
-      next: (trend) => {
-        this.monthlySalaryTrend = trend;
-        this.cdr.detectChanges();
-      }
-    });
+setSalaryUnitMode(mode: 'monthly' | 'hourly'): void {
+  this.salaryUnitMode = mode;
+  this.buildContractSalaryChart();
+  this.cdr.detectChanges();
+  setTimeout(() => this.salaryChart?.update(), 50);
+}
+
+private isHourlyRecord(item: ContractSalaryTrendItem): boolean {
+  const ct = item.contractType.toLowerCase();
+  return ct.includes('godz') || ct.includes('hr') || (item.averageSalary > 0 && item.averageSalary < 500);
+}
+
+private normalizeContractGroup(contractType: string): 'B2B' | 'UoP' | 'UZ / Inne' {
+  const ct = contractType.toLowerCase();
+  if (ct.includes('b2b')) return 'B2B';
+  if (ct.includes('prac') || ct.includes('uop') || ct.includes('employment') || ct.includes('coe')) return 'UoP';
+  return 'UZ / Inne';
+}
+
+private detectAvailableSalaryUnits(items: ContractSalaryTrendItem[]): void {
+  this.hasHourlyRates = items.some(i => this.isHourlyRecord(i));
+  this.hasMonthlyRates = items.some(i => !this.isHourlyRecord(i));
+
+  // Jeśli firma ma wyłącznie stawki godzinowe (jak B2B.NET w ostatnich miesiącach), przełącz automatycznie na godzinowe
+  if (!this.hasMonthlyRates && this.hasHourlyRates) {
+    this.salaryUnitMode = 'hourly';
+  } else {
+    this.salaryUnitMode = 'monthly';
   }
+}
 
-  private buildSalaryComparisonChart(data: CompanyVsMarketSalaryDto[]): void {
-    const labels = data.map(d => d.month);
+private buildContractSalaryChart(): void {
+  // 1. Filtrujemy rekordy zgodne z wybranym trybem (miesięczne vs godzinowe)
+  const filtered = this.rawContractSalaries.filter(item =>
+    this.salaryUnitMode === 'hourly' ? this.isHourlyRecord(item) : !this.isHourlyRecord(item)
+  );
 
-    const companyMid = data.map(d => {
-      if (d.companyAvgMin !== null && d.companyAvgMax !== null) return (d.companyAvgMin + d.companyAvgMax) / 2;
-      return d.companyAvgMin ?? d.companyAvgMax;
+  // 2. Zbieramy posortowaną listę wszystkich unikalnych miesięcy z pełnego zbioru danych
+  const allMonths = Array.from(new Set(this.rawContractSalaries.map(i => i.month))).sort();
+
+  // 3. Agregujemy średnią ważoną (po offersCount) dla każdej grupy umowy w każdym miesiącu
+  const computeSeries = (groupName: 'B2B' | 'UoP' | 'UZ / Inne'): (number | null)[] => {
+    return allMonths.map(month => {
+      const matching = filtered.filter(
+        i => i.month === month && this.normalizeContractGroup(i.contractType) === groupName
+      );
+      if (matching.length === 0) return null;
+
+      const totalOffers = matching.reduce((sum, x) => sum + (x.offersCount || 1), 0);
+      const weightedSum = matching.reduce((sum, x) => sum + x.averageSalary * (x.offersCount || 1), 0);
+      return Math.round((weightedSum / totalOffers) * 100) / 100;
     });
+  };
 
-    const marketMid = data.map(d => {
-      if (d.globalAvgMin !== null && d.globalAvgMax !== null) return (d.globalAvgMin + d.globalAvgMax) / 2;
-      return d.globalAvgMin ?? d.globalAvgMax;
-    });
+  const b2bData = computeSeries('B2B');
+  const uopData = computeSeries('UoP');
+  const uzData = computeSeries('UZ / Inne');
 
-    this.salaryComparisonChartData = {
-      labels,
-      datasets: [
-        {
-          label: `${this.selectedCompany()} (Średnia)`,
-          data: companyMid,
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.15)',
-          borderWidth: 3,
-          pointRadius: 4,
-          pointBackgroundColor: '#6366f1',
-          tension: 0.35,
-          fill: true
-        },
-        {
-          label: 'Rynek Junior IT (Średnia)',
-          data: marketMid,
-          borderColor: '#94a3b8',
-          borderDash: [5, 5],
-          borderWidth: 2,
-          pointRadius: 2,
-          pointBackgroundColor: '#94a3b8',
-          tension: 0.35,
-          fill: false
-        }
-      ]
+  const unitLabel = this.salaryUnitMode === 'hourly' ? 'zł/h' : 'PLN';
+
+  // Aktualizacja osi Y oraz tooltipów pod wybraną jednostkę
+  if (this.salaryComparisonChartOptions?.scales?.['y']?.ticks) {
+    this.salaryComparisonChartOptions.scales['y'].ticks.callback = (val) => `${val} ${unitLabel}`;
+  }
+  if (this.salaryComparisonChartOptions?.plugins?.tooltip?.callbacks) {
+    this.salaryComparisonChartOptions.plugins.tooltip.callbacks.label = (ctx) => {
+      const val = ctx.parsed.y;
+      return val !== null ? ` ${ctx.dataset.label}: ${val} ${unitLabel}` : ` ${ctx.dataset.label}: brak danych`;
     };
   }
+
+  this.salaryComparisonChartData = {
+    labels: allMonths,
+    datasets: [
+      {
+        label: 'Kontrakt B2B',
+        data: b2bData,
+        borderColor: '#06b6d4',
+        backgroundColor: 'rgba(6, 182, 212, 0.12)',
+        borderWidth: 3,
+        pointRadius: 4,
+        pointBackgroundColor: '#06b6d4',
+        tension: 0.3,
+        fill: false
+      },
+      {
+        label: 'Umowa o Pracę (UoP)',
+        data: uopData,
+        borderColor: '#6366f1',
+        backgroundColor: 'rgba(99, 102, 241, 0.12)',
+        borderWidth: 3,
+        pointRadius: 4,
+        pointBackgroundColor: '#6366f1',
+        tension: 0.3,
+        fill: false
+      },
+      {
+        label: 'UZ / Staż / Inne',
+        data: uzData,
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+        borderDash: [4, 4],
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: '#f59e0b',
+        tension: 0.3,
+        fill: false
+      }
+    ]
+  };
+}
+
+// Gettery podsumowujące średnie dla kafelków nad wykresem
+get contractAveragesSummary(): { b2b: number | null; uop: number | null; uz: number | null; unit: string } {
+  const filtered = this.rawContractSalaries.filter(item =>
+    this.salaryUnitMode === 'hourly' ? this.isHourlyRecord(item) : !this.isHourlyRecord(item)
+  );
+
+  const calcAvg = (group: 'B2B' | 'UoP' | 'UZ / Inne'): number | null => {
+    const list = filtered.filter(i => this.normalizeContractGroup(i.contractType) === group);
+    if (list.length === 0) return null;
+    const totalOffers = list.reduce((s, x) => s + (x.offersCount || 1), 0);
+    const sum = list.reduce((s, x) => s + x.averageSalary * (x.offersCount || 1), 0);
+    return Math.round(sum / totalOffers);
+  };
+
+  return {
+    b2b: calcAvg('B2B'),
+    uop: calcAvg('UoP'),
+    uz: calcAvg('UZ / Inne'),
+    unit: this.salaryUnitMode === 'hourly' ? 'zł/h' : 'PLN'
+  };
+}
 
   loadLocations(companyName: string): void {
     this.isLoadingLocations = true;
@@ -565,6 +676,13 @@ export class CompanyDetailsComponent implements OnInit {
     this.monthlySalaryTrend = [];
     this.locationDistribution = [];
     this.isDropdownOpen = false;
+
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { company: null },
+      queryParamsHandling: 'merge'
+    });
+
     this.cdr.detectChanges();
   }
 

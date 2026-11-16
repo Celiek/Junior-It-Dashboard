@@ -15,7 +15,10 @@ import {
   RelistedOfferMonthlyDto,
   CompanyMonthlySalaryDto,
   CompanyVsMarketSalaryDto,
-  CompanyLocationDto
+  CompanyLocationDto,
+  TechCompanionDTO,
+  TechComboDTO,
+  ContractSalaryTrendItem
 } from '../models/market-api.models';
 
 export interface DashboardApiResponse {
@@ -260,23 +263,77 @@ private normalizeAndAggregateLocations(rows: any[][]): CompanyLocationDto[] {
 private extractMainCity(raw: string): string {
   const lower = raw.toLowerCase();
 
-  if (lower.includes('remote') || lower.includes('zdaln')) return 'Remote (Zdalnie)';
-  if (lower.includes('warszaw') || lower.includes('warsaw')) return 'Warszawa';
-  if (lower.includes('poznań') || lower.includes('poznan')) return 'Poznań';
-  if (lower.includes('kraków') || lower.includes('krakow')) return 'Kraków';
-  if (lower.includes('wrocław') || lower.includes('wroclaw')) return 'Wrocław';
-  if (lower.includes('gdańsk') || lower.includes('gdansk') || lower.includes('trójmiasto')) return 'Gdańsk';
-  if (lower.includes('katowic')) return 'Katowice';
-  if (lower.includes('łódź') || lower.includes('lodz')) return 'Łódź';
-  if (lower.includes('toruń') || lower.includes('torun')) return 'Toruń';
-  if (lower.includes('szczecin')) return 'Szczecin';
-  if (lower.includes('lublin')) return 'Lublin';
-  if (lower.includes('białystok') || lower.includes('bialystok')) return 'Białystok';
-  if (lower.includes('bydgoszcz')) return 'Bydgoszcz';
-  if (lower.includes('rzeszów') || lower.includes('rzeszow')) return 'Rzeszów';
+    if (lower.includes('remote') || lower.includes('zdaln')) return 'Remote (Zdalnie)';
+    if (lower.includes('warszaw') || lower.includes('warsaw')) return 'Warszawa';
+    if (lower.includes('poznań') || lower.includes('poznan')) return 'Poznań';
+    if (lower.includes('kraków') || lower.includes('krakow')) return 'Kraków';
+    if (lower.includes('wrocław') || lower.includes('wroclaw')) return 'Wrocław';
+    if (lower.includes('gdańsk') || lower.includes('gdansk') || lower.includes('trójmiasto')) return 'Gdańsk';
+    if (lower.includes('katowic')) return 'Katowice';
+    if (lower.includes('łódź') || lower.includes('lodz')) return 'Łódź';
+    if (lower.includes('toruń') || lower.includes('torun')) return 'Toruń';
+    if (lower.includes('szczecin')) return 'Szczecin';
+    if (lower.includes('lublin')) return 'Lublin';
+    if (lower.includes('białystok') || lower.includes('bialystok')) return 'Białystok';
+    if (lower.includes('bydgoszcz')) return 'Bydgoszcz';
+    if (lower.includes('rzeszów') || lower.includes('rzeszow')) return 'Rzeszów';
 
   // Fallback: bierze pierwszy człon przed przecinkiem
   return raw.split(',')[0].trim();
+  }
+
+  getTopTechnologyCombinations(combinationSize: number = 2, limit: number = 50): Observable<TechComboDTO[]> {
+  const params = new HttpParams()
+    .set('combinationSize', combinationSize.toString())
+    .set('limit', limit.toString());
+
+  return this.http.get<any[]>(`${this.baseUrl}/getAllTechnologies`, { params }).pipe(
+    map(items => (items || []).map(item => ({
+      technologies: item.technologies || item.combo || [],
+      count: Number(item.count ?? item.frequency ?? 0),
+      percentage: item.percentage !== undefined ? Number(item.percentage) : undefined
+    })))
+  );
+}
+
+getTopCompanionsForTechnology(targetTech: string, limit: number = 12): Observable<TechCompanionDTO[]> {
+  const params = new HttpParams()
+    .set('targetTech', targetTech)
+    .set('limit', limit.toString());
+
+  return this.http.get<any[]>(`${this.baseUrl}/topTechnoForTechnology`, { params }).pipe(
+    map(items => {
+      const list = items || [];
+
+      const mapped = list.map(item => ({
+        technology: String(item.technology ?? 'Nieznana'),
+        count: Number(item.coOccurrenceCount ?? 0) // <--- Poprawny klucz z JSON
+      }));
+
+      // Wyliczamy procenty relatywnie względem najpopularniejszej technologii w zestawieniu
+      const maxCount = mapped.length > 0 ? Math.max(...mapped.map(m => m.count), 1) : 1;
+
+      return mapped.map(m => ({
+        technology: m.technology,
+        count: m.count,
+        percentage: Math.round((m.count / maxCount) * 100)
+      }));
+    })
+  );
+}
+
+getCompanySalaryByContract(companyName: string): Observable<ContractSalaryTrendItem[]> {
+  const params = new HttpParams().set('companyName', companyName);
+  // Upewnij się, że ścieżka odpowiada Twojemu @GetMapping dla tego JSON-a
+  return this.http.get<ContractSalaryTrendItem[]>(`${this.baseUrl}/averageMonthlySalaryByCompany`, { params }).pipe(
+    map(items => (items || []).map(item => ({
+      averageSalary: Number(item.averageSalary) || 0,
+      contractType: String(item.contractType || 'Inne'),
+      month: String(item.month || '').slice(0, 7), // zamienia "2026-11-01T00:00:00" na "2026-11"
+      offersCount: Number(item.offersCount) || 0
+    })))
+  );
 }
 
 }
+

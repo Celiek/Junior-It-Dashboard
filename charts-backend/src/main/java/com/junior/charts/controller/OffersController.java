@@ -6,25 +6,41 @@ import com.junior.charts.dto.TechDTO.TechCompanionDTO;
 import com.junior.charts.dto.offer.JobSummaryDTO;
 import com.junior.charts.dto.offer.OfferSummaryDTO;
 import com.junior.charts.service.OfferService;
+import jakarta.validation.constraints.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/offers")
 @RequiredArgsConstructor
+@Validated
 public class OffersController {
     private final OfferService service;
+
+    private static final int MAX_PAGE_SIZE = 100;
+
+    private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+            "title",
+            "company",
+            "location",
+            "scraped_at"
+    );
 
     @GetMapping("/countOffersByLocation")
     public ResponseEntity<List<OffersByLocationDTO>> countOffersByLocation() {
@@ -35,9 +51,14 @@ public class OffersController {
     public ResponseEntity<List<OfferDto>> findOffersBetweenDates
             (@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
              @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate stopDate){
-        System.out.println("Start DATE" + startDate);
-        System.out.println("STOP DATE" + stopDate);
-        //service.listaOfert();
+
+        if (startDate.isAfter(stopDate)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "startDate cannot be after stopDate"
+            );
+        }
+
         return ResponseEntity.ok(service.findOffersBeetweenDates(startDate,stopDate));
     }
 
@@ -77,82 +98,210 @@ public class OffersController {
     }
 
     @GetMapping("/latestJobAdvertisement")
-    public List<JobSummaryDTO> companyLatestJobAdvertisement(String companyName){
+    public List<JobSummaryDTO> companyLatestJobAdvertisement(@RequestParam
+                                                             @NotBlank
+                                                             @Size(max = 200)
+                                                             String companyName){
         return service.companyLatestJobAdvertisement(companyName);
     }
 
     @GetMapping("/amountOfjobAdvertisements")
-    public Long amountOfJobAdvertisementsThisYear(String companyName, int year){
+    public Long amountOfJobAdvertisementsThisYear(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName,
+
+            @RequestParam
+            @Min(2000)
+            @Max(2100)
+            int year
+    ) {
         return service.amountOfJobAdvertisementsThisYear(companyName, year);
     }
 
     @GetMapping("/jobAdvertisementSources")
-    public List<Object[]> amountOfJobAdvertisementSources(String companyName,
-                                                          int year){
-        return service.amountOfJobAdvertisementSources(companyName,year);
+    public List<Object[]> amountOfJobAdvertisementSources(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName,
+
+            @RequestParam
+            @Min(2000)
+            @Max(2100)
+            int year
+    ) {
+        return service.amountOfJobAdvertisementSources(companyName, year);
     }
 
     @GetMapping("/jobOffersByCategory")
-    public List<Object[]> countJobOffersByCategoryAndCompany(String companyName){
+    public List<Object[]> countJobOffersByCategoryAndCompany(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName
+    ) {
         return service.countJobOffersByCategoryAndCompany(companyName);
     }
 
-    //zwraca ilość ofert które owtarzały się w czasie dla firmy
     @GetMapping("/relistedoffers")
-    public List<Object[]> findMonthlyNewAndReslistedOffers(String companyName){
+    public List<Object[]> findMonthlyNewAndReslistedOffers(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName
+    ) {
         return service.findMonthlyNewAndRelistedoffers(companyName);
     }
 
+    // =========================================================
+    // LISTA OFERT FIRMY
+    // =========================================================
+
     @GetMapping("/companyOfferList")
-    public Page<OfferSummaryDTO> companyOfferList(String companyName, Pageable page){
-        return service.companyOfferList(companyName, page);
+    public Page<OfferSummaryDTO> companyOfferList(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName,
+
+            Pageable pageable
+    ) {
+        validatePageable(pageable);
+
+        return service.companyOfferList(companyName, pageable);
     }
 
     @GetMapping("/companies")
-    public List<String> findAllDistinctComapnies(){
+    public List<String> findAllDistinctComapnies() {
         return service.findAllDistinctComapnies();
     }
 
     @GetMapping("/offersForCompanyOnDate")
-    public List<Object[]> findAllOffersForCompanyOnDate(String companName,
-                                                        String yearMonth){
-        return service.findAllOffersForCompanyOnDate(companName,yearMonth);
+    public List<Object[]> findAllOffersForCompanyOnDate(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName,
+
+            @RequestParam
+            @Pattern(regexp = "^\\d{4}-(0[1-9]|1[0-2])$")
+            String yearMonth
+    ) {
+        return service.findAllOffersForCompanyOnDate(
+                companyName,
+                yearMonth
+        );
     }
 
+    // =========================================================
+    // WYNAGRODZENIA
+    // =========================================================
+
     @GetMapping("/offerWithoutSalary")
-    public Long countOffersWithoutSalaryByCompany(String companyName){
+    public Long countOffersWithoutSalaryByCompany(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName
+    ) {
         return service.countOffersWithoutSalaryByCompany(companyName);
     }
 
     @GetMapping("/averageMonthlySalaryByCompany")
-    public List<Object[]> getMonthlySalaryTrendByCompany(String companyName){
+    public List<Object[]> getMonthlySalaryTrendByCompany(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName
+    ) {
         return service.getMonthlySalaryTrendByCompany(companyName);
     }
 
     @GetMapping("/averageCompanySalaryOnAverageSalary")
-    public List<Object[]> compareCompanySalaryWithMarketWithoutCount(String companyName){
+    public List<Object[]> compareCompanySalaryWithMarketWithoutCount(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName
+    ) {
         return service.compareCompanySalaryWithMarketWithoutCount(companyName);
     }
 
     @GetMapping("/mostPopularTechnologiesByCompany")
-    public List<Object[]> mostPopularTechnologiesInOffersByCompany(String companyName){
+    public List<Object[]> mostPopularTechnologiesInOffersByCompany(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName
+    ) {
         return service.mostPopularTechnologiesInOffersByCompany(companyName);
     }
 
     @GetMapping("/locationDistributionByCompany")
-    public List<Object[]> getLocationDistributionByCompany(String companyName){
+    public List<Object[]> getLocationDistributionByCompany(
+            @RequestParam
+            @NotBlank
+            @Size(max = 200)
+            String companyName
+    ) {
         return service.getLocationDistributionByCompany(companyName);
     }
 
     @GetMapping("/getAllTechnologies")
-    public List<TechComboDTO> getTopTechnologyCombinations(int combinationSize, int limit){
-        return service.getTopTechnologyCombinations(combinationSize, limit);
+    public List<TechComboDTO> getTopTechnologyCombinations(
+                                                        @RequestParam
+                                                        @Min(2)
+                                                        @Max(10)
+                                                        int combinationSize,
+
+                                                        @RequestParam
+                                                        @Min(1)
+                                                        @Max(100)
+                                                        int limit) {
+        return service.getTopTechnologyCombinations(
+                combinationSize,
+                limit
+        );
     }
 
     @GetMapping("/topTechnoForTechnology")
-    public List<TechCompanionDTO> getTopCompanionsForTechnology(String targetTech, int limit){
+    public List<TechCompanionDTO> getTopCompanionsForTechnology(
+            @RequestParam
+            @NotBlank
+            @Size(max = 100)
+            String targetTech,
+
+            @RequestParam(defaultValue = "10")
+            @Min(1)
+            @Max(100)
+            int limit
+    ) {
         return service.getTopCompanionsForTechnology(targetTech, limit);
     }
 
-}
+    // =========================================================
+    // WALIDACJA PAGINACJI I SORTOWANIA
+    // =========================================================
 
+    private void validatePageable(Pageable pageable) {
+
+        if (pageable.getPageSize() > MAX_PAGE_SIZE) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Maximum page size is " + MAX_PAGE_SIZE
+            );
+        }
+
+        for (Sort.Order order : pageable.getSort()) {
+
+            if (!ALLOWED_SORT_FIELDS.contains(order.getProperty())) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Unsupported sort field: " + order.getProperty()
+                );
+            }
+        }
+    }
+}

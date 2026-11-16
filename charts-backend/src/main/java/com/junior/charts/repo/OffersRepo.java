@@ -557,4 +557,5 @@ public interface OffersRepo extends JpaRepository<Offers, Long>{
     WHERE technologies IS NOT NULL
     """, nativeQuery = true)
     List<String[]> findAllTechnologiesArrays();
+
 }
